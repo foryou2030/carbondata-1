@@ -48,6 +48,8 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
   var complexfilePath: String = _
   var complexfilePath1: String = _
   var complexfilePath2: String = _
+  var localDictionaryFileExtension: String = _
+  var noLocalDictionaryFile: String = _
 
   def buildCarbonLoadModel(relation: CarbonRelation,
     filePath: String,
@@ -86,6 +88,8 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     complexfilePath1 = workDirectory + "/src/test/resources/complexdata1.csv"
     complexfilePath2 = workDirectory + "/src/test/resources/complexdata2.csv"
     complexfilePath = workDirectory + "/src/test/resources/complexdata.csv"
+    localDictionaryFileExtension = ".dictionary"
+    noLocalDictionaryFile = ""
   }
 
   def buildTable() = {
@@ -157,7 +161,9 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
-        sampleRelation.cubeMeta.storePath
+        sampleRelation.cubeMeta.storePath,
+        noLocalDictionaryFile,
+        localDictionaryFileExtension
       )
 
     // test for dimension table
@@ -175,7 +181,9 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
-        complexRelation.cubeMeta.storePath
+        complexRelation.cubeMeta.storePath,
+        noLocalDictionaryFile,
+        localDictionaryFileExtension
       )
   }
 
@@ -191,7 +199,9 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
-        sampleRelation.cubeMeta.storePath
+        sampleRelation.cubeMeta.storePath,
+        noLocalDictionaryFile,
+        localDictionaryFileExtension
       )
     DictionaryTestCaseUtil.
       checkDictionary(incrementalLoadTableRelation, "deviceInformationId", "100010")
@@ -205,7 +215,9 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
-        sampleRelation.cubeMeta.storePath
+        sampleRelation.cubeMeta.storePath,
+        noLocalDictionaryFile,
+        localDictionaryFileExtension
       )
     DictionaryTestCaseUtil.
       checkDictionary(incrementalLoadTableRelation, "deviceInformationId", "100077")

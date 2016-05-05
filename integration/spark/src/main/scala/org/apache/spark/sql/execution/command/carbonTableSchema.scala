@@ -1534,6 +1534,9 @@ private[sql] case class LoadCube(
       val escapeChar = partionValues.getOrElse("escapechar", "\\")
       val columnDict = partionValues.getOrElse("columndict", null)
       val serializationNullFormat = partionValues.getOrElse("serialization_null_format", "\\N")
+      val localDictionaryPath = partionValues.getOrElse("local_dictionary_path", "")
+      val dictionaryFileExtension =
+        partionValues.getOrElse("dictionary_file_extension", ".dictionary")
       val complex_delimiter_level_1 = partionValues.getOrElse("complex_delimiter_level_1", "\\$")
       val complex_delimiter_level_2 = partionValues.getOrElse("complex_delimiter_level_2", "\\:")
       val multiLine = partionValues.getOrElse("multiline", "false").trim.toLowerCase match {
@@ -1596,7 +1599,7 @@ private[sql] case class LoadCube(
           carbonLoadModel.setColDictFilePath(columnDict)
         }
         GlobalDictionaryUtil
-          .generateGlobalDictionary(sqlContext, carbonLoadModel, relation.cubeMeta.storePath)
+          .generateGlobalDictionary(sqlContext, carbonLoadModel, relation.cubeMeta.storePath, localDictionaryPath, dictionaryFileExtension)
         CarbonDataRDDFactory
           .loadCarbonData(sqlContext, carbonLoadModel, storeLocation, relation.cubeMeta.storePath,
             kettleHomePath,
