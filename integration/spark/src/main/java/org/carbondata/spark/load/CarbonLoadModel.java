@@ -89,6 +89,10 @@ public class CarbonLoadModel implements Serializable {
    */
   private String segmentId;
 
+  private String localDictPath;
+
+  private String dictFileExt;
+
   /**
    * escape Char
    */
@@ -163,6 +167,22 @@ public class CarbonLoadModel implements Serializable {
 
   public void setDirectLoad(boolean isDirectLoad) {
     this.isDirectLoad = isDirectLoad;
+  }
+
+  public String getLocalDictPath() {
+    return localDictPath;
+  }
+
+  public void setLocalDictPath(String localDictPath) {
+    this.localDictPath = localDictPath;
+  }
+
+  public String getDictFileExt() {
+    return dictFileExt;
+  }
+
+  public void setDictFileExt(String dictFileExt) {
+    this.dictFileExt = dictFileExt;
   }
 
   public List<String> getFactFilesToProcess() {

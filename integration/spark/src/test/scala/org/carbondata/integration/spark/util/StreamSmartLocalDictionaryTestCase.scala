@@ -41,14 +41,12 @@ class StreamSmartLocalDictionaryTestCase extends QueryTest with BeforeAndAfterAl
   var complexRelation: CarbonRelation = _
   var sampleLocalDictionaryFile: String = _
   var complexLocalDictionaryFile: String = _
-  var localDictionaryFileExtension: String = _
-  var noLocalDictionaryFile: String = _
-
 
   def buildCarbonLoadModel(relation: CarbonRelation,
     filePath: String,
     dimensionFilePath: String,
-    header: String): CarbonLoadModel = {
+    header: String,
+    localDictFilePath: String): CarbonLoadModel = {
     val carbonLoadModel = new CarbonLoadModel
     carbonLoadModel.setTableName(relation.cubeMeta.carbonTableIdentifier.getDatabaseName)
     carbonLoadModel.setDatabaseName(relation.cubeMeta.carbonTableIdentifier.getTableName)
@@ -64,6 +62,8 @@ class StreamSmartLocalDictionaryTestCase extends QueryTest with BeforeAndAfterAl
     carbonLoadModel.setCsvDelimiter(",")
     carbonLoadModel.setComplexDelimiterLevel1("\\$")
     carbonLoadModel.setComplexDelimiterLevel2("\\:")
+    carbonLoadModel.setLocalDictPath(localDictFilePath)
+    carbonLoadModel.setDictFileExt(".dictionary")
     carbonLoadModel
   }
 
@@ -80,8 +80,6 @@ class StreamSmartLocalDictionaryTestCase extends QueryTest with BeforeAndAfterAl
     pwd = new File(this.getClass.getResource("/").getPath + "/../../").getCanonicalPath
     sampleLocalDictionaryFile = pwd + "/src/test/resources/localdictionary/sample/20160423/1400_1405/"
     complexLocalDictionaryFile = pwd + "/src/test/resources/localdictionary/complex/20160423/1400_1405/"
-    localDictionaryFileExtension = ".dictionary"
-    noLocalDictionaryFile = ""
   }
 
   def buildTable() = {
@@ -116,16 +114,20 @@ class StreamSmartLocalDictionaryTestCase extends QueryTest with BeforeAndAfterAl
 
   test("Support generate global dictionary from streamSmart local dictionary") {
     val header = "id,name,city,age"
-    val carbonLoadModel = buildCarbonLoadModel(sampleRelation, null, null, header)
-    GlobalDictionaryUtil.generateGlobalDictionary(CarbonHiveContext, carbonLoadModel, sampleRelation.cubeMeta.storePath,
-      sampleLocalDictionaryFile, localDictionaryFileExtension)
+    val carbonLoadModel = buildCarbonLoadModel(sampleRelation, null, null, header, sampleLocalDictionaryFile)
+    GlobalDictionaryUtil
+      .generateGlobalDictionary(CarbonHiveContext,
+        carbonLoadModel,
+        sampleRelation.cubeMeta.storePath)
   }
 
   test("Support generate global dictionary from streamSmart local dictionary file for complex type") {
     val header = "deviceInformationId,channelsId,ROMSize,purchasedate,mobile,MAC,locationinfo,proddate,gamePointId,contractNumber"
-    val carbonLoadModel = buildCarbonLoadModel(complexRelation, null, null, header)
-    GlobalDictionaryUtil.generateGlobalDictionary(CarbonHiveContext, carbonLoadModel, complexRelation.cubeMeta.storePath,
-      complexLocalDictionaryFile, localDictionaryFileExtension)
+    val carbonLoadModel = buildCarbonLoadModel(complexRelation, null, null, header, complexLocalDictionaryFile)
+    GlobalDictionaryUtil
+      .generateGlobalDictionary(CarbonHiveContext,
+      carbonLoadModel,
+      complexRelation.cubeMeta.storePath)
   }
   
   override def afterAll {
