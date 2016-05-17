@@ -715,7 +715,7 @@ object GlobalDictionaryUtil extends Logging {
         // prune columns according to the CSV file header, dimension columns
         val (requireDimension, requireColumnNames) =
           pruneDimensions(dimensions, fileHeaders, fileHeaders)
-        if (requireDimension.size >= 1) {
+        if (requireDimension.nonEmpty) {
           val model = createDictionaryLoadModel(carbonLoadModel, table, requireDimension,
             hdfsLocation, dictfolderPath, false)
           val dictionaryFileExtension = carbonLoadModel.getDictFileExt

@@ -129,7 +129,7 @@ class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfte
   }
   
   override def afterAll {
-    sql("drop table if exists sample")
-    sql("drop table if exists complextypes")
+    sql("drop table sample")
+    sql("drop table complextypes")
   }
 }
