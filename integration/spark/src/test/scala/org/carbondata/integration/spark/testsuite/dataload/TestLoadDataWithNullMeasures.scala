@@ -13,7 +13,7 @@ class TestLoadDataWithNullMeasures extends QueryTest with BeforeAndAfterAll {
   }
   test("test carbon table data loading when there are null measures in data") {
     try {
-      sql("LOAD DATA FACT FROM './integration/spark/src/test/resources/datawithnullmsrs.csv' INTO CUBE carboncube OPTIONS(DELIMITER ',')");
+      sql("LOAD DATA FACT FROM './src/test/resources/datawithnullmsrs.csv' INTO CUBE carboncube OPTIONS(DELIMITER ',')");
     } catch {
       case e : Throwable => e.printStackTrace()
     }
