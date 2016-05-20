@@ -1053,7 +1053,6 @@ public class CarbonCSVBasedSeqGenStep extends BaseStep {
             throw new KettleException(
                 "Parsing complex string and generating surrogates/ByteArray failed. ", e1);
           }
-          i++;
         } else {
           Dictionary dicCache = dictionaryCaches.get(foreignKeyColumnName);
 
