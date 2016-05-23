@@ -518,14 +518,14 @@ public class CarbonFactDataHandlerColumnar implements CarbonFactHandler {
       for (int k = 0; k < otherMeasureIndex.length; k++) {
         if (type[otherMeasureIndex[k]] == CarbonCommonConstants.BIG_INT_MEASURE) {
           if (null == row[otherMeasureIndex[k]]) {
-            dataHolder[otherMeasureIndex[k]].setWritableLongValueByIndex(count, 0);
+            dataHolder[otherMeasureIndex[k]].setWritableLongValueByIndex(count, 0L);
           } else {
             dataHolder[otherMeasureIndex[k]]
                 .setWritableLongValueByIndex(count, row[otherMeasureIndex[k]]);
           }
         } else {
           if (null == row[otherMeasureIndex[k]]) {
-            dataHolder[otherMeasureIndex[k]].setWritableDoubleValueByIndex(count, 0);
+            dataHolder[otherMeasureIndex[k]].setWritableDoubleValueByIndex(count, 0.0);
           } else {
             dataHolder[otherMeasureIndex[k]]
                 .setWritableDoubleValueByIndex(count, row[otherMeasureIndex[k]]);
