@@ -483,7 +483,7 @@ public class SortDataRows {
     } catch (IOException e) {
       throw new CarbonSortKeyAndGroupByException("Problem while writing the file", e);
     } catch (Exception e) {
-      LOGGER.error(e, "Problem while writing the file");
+      throw new CarbonSortKeyAndGroupByException("Problem while writing the file", e);
     } finally {
       // close streams
       CarbonUtil.closeStreams(stream);
