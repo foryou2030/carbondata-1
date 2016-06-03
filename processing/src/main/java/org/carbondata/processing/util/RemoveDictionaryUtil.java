@@ -53,7 +53,7 @@ public class RemoveDictionaryUtil {
     Object[] measureArray = new Object[out.length - dimCount];
     int index = 0;
     for (int j = dimCount; j < out.length; j++) {
-      measureArray[index++] = out[memberMapping[j]];
+      measureArray[index++] = out[j];
     }
 
     newOutArr[IgnoreDictionary.DIMENSION_INDEX_IN_ROW.getIndex()] = dimArray;
