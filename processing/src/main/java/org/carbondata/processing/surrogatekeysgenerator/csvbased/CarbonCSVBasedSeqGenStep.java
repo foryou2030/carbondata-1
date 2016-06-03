@@ -1142,7 +1142,7 @@ public class CarbonCSVBasedSeqGenStep extends BaseStep {
 
     insertHierIfRequired(out);
     RemoveDictionaryUtil
-        .prepareOut(newArray, byteBufferArr, out, dimLen - meta.complexTypes.size());
+        .prepareOut(newArray, byteBufferArr, out, dimLen - meta.complexTypes.size(), memberMapping);
 
     return newArray;
   }
