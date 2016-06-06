@@ -1162,9 +1162,9 @@ private[sql] case class CreateCube(cm: tableModel) extends RunnableCommand {
   def run(sqlContext: SQLContext): Seq[Row] = {
     val LOGGER = LogServiceFactory.getLogService(this.getClass.getCanonicalName)
     cm.schemaName = getDB.getDatabaseName(cm.schemaNameOp, sqlContext)
-    val s = cm.schemaName
-    val c = cm.cubeName
-    LOGGER.audit(s"Creating Table with Database name [$s] and Table name [$c]")
+    val cubeName = cm.cubeName
+    val dbName = cm.schemaName
+    LOGGER.audit(s"Creating Table with Database name [$cubeName] and Table name [$dbName]")
 
     val tableInfo: TableInfo = TableNewProcessor(cm, sqlContext)
 
@@ -1172,11 +1172,8 @@ private[sql] case class CreateCube(cm: tableModel) extends RunnableCommand {
       sys.error("No Dimensions found. Table should have at least one dimesnion !")
     }
 
-    val cubeName = cm.cubeName
-    val dbName = cm.schemaName
-
-    if (sqlContext.tableNames(cm.schemaName).map(x => x.toLowerCase())
-      .contains(cm.cubeName.toLowerCase())) {
+    if (sqlContext.tableNames(dbName).map(x => x.toLowerCase())
+      .contains(cubeName.toLowerCase())) {
       if (!cm.ifNotExistsSet) {
         LOGGER.audit(
           s"Table creation with Database name [$dbName] and Table name [$cubeName] failed. " +
@@ -1197,26 +1194,24 @@ private[sql] case class CreateCube(cm: tableModel) extends RunnableCommand {
       } catch {
         case e: Exception =>
 
-          val schemaName = cm.schemaName
-          val cubeName = cm.cubeName
           val relation = CarbonEnv.getInstance(sqlContext).carbonCatalog
-            .lookupRelation2(Seq(schemaName, cubeName))(sqlContext).asInstanceOf[CarbonRelation]
+            .lookupRelation2(Seq(dbName, cubeName))(sqlContext).asInstanceOf[CarbonRelation]
           if (relation != null) {
-            LOGGER.audit(s"Deleting Table [$cubeName] under Database [$schemaName]" +
+            LOGGER.audit(s"Deleting Table [$cubeName] under Database [$dbName]" +
                          "as create TABLE failed")
             CarbonEnv.getInstance(sqlContext).carbonCatalog
               .dropCube(relation.cubeMeta.partitioner.partitionCount,
                 relation.cubeMeta.dataPath,
-                schemaName,
+                dbName,
                 cubeName)(sqlContext)
           }
 
 
-          LOGGER.audit(s"Table ceation with Database name [$s] and Table name [$c] failed")
+          LOGGER.audit(s"Table ceation with Database name [$dbName] and Table name [$cubeName] failed")
           throw e
       }
 
-      LOGGER.audit(s"Table created with Database name [$s] and Table name [$c]")
+      LOGGER.audit(s"Table created with Database name [$dbName] and Table name [$cubeName]")
     }
 
     Seq.empty
