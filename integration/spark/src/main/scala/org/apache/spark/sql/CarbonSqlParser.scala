@@ -944,7 +944,9 @@ class CarbonSqlParser()
           case _ => (Seq())
         }
 
-        AlterTable(tableModel(false, schemaName.getOrElse("default"), schemaName, cubeName.toLowerCase(),
+        AlterTable(tableModel(false,
+          schemaName.getOrElse("default"),
+          schemaName, cubeName.toLowerCase(),
           dimCols.map(f => normalizeType(f)),
           msrCols.map(f => normalizeType(f)), "", withKeyword, "",
           None, Seq(), simpleDimRelations, noDictionary, aggregation, None, null),
@@ -1077,7 +1079,8 @@ class CarbonSqlParser()
       opt(";") ^^ {
       case tabletype ~ exists ~ schemaName ~ resourceName =>
         tabletype match {
-          case agg ~ table => DropAggregateTableCommand(exists.isDefined, schemaName, resourceName.toLowerCase())
+          case agg ~ table =>
+            DropAggregateTableCommand(exists.isDefined, schemaName, resourceName.toLowerCase())
           case _ => DropCubeCommand(exists.isDefined, schemaName, resourceName.toLowerCase())
         }
     }
@@ -1318,7 +1321,8 @@ class CarbonSqlParser()
     SHOW ~> (LOADS|SEGMENTS) ~> FOR ~> (CUBE | TABLE) ~> (ident <~ ".").? ~ ident ~
       (LIMIT ~> numericLit).? <~
       opt(";") ^^ {
-      case schemaName ~ cubeName ~ limit => ShowLoadsCommand(schemaName, cubeName.toLowerCase(), limit)
+      case schemaName ~ cubeName ~ limit =>
+        ShowLoadsCommand(schemaName, cubeName.toLowerCase(), limit)
     }
 
   protected lazy val deleteLoadsByID: Parser[LogicalPlan] =
