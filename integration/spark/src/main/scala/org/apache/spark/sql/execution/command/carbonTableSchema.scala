@@ -1172,8 +1172,7 @@ private[sql] case class CreateCube(cm: tableModel) extends RunnableCommand {
       sys.error("No Dimensions found. Table should have at least one dimesnion !")
     }
 
-    if (sqlContext.tableNames(dbName).map(x => x.toLowerCase())
-      .contains(cubeName.toLowerCase())) {
+    if (sqlContext.tableNames(dbName).exists(_.equalsIgnoreCase(cubeName))) {
       if (!cm.ifNotExistsSet) {
         LOGGER.audit(
           s"Table creation with Database name [$dbName] and Table name [$cubeName] failed. " +
