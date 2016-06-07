@@ -1205,7 +1205,8 @@ private[sql] case class CreateCube(cm: tableModel) extends RunnableCommand {
                 tbName)(sqlContext)
           }
 
-          LOGGER.audit(s"Table ceation with Database name [$dbName] and Table name [$tbName] failed")
+          LOGGER.audit(s"Table creation with Database name [$dbName] " +
+            s"and Table name [$tbName] failed")
           throw e
       }
 
