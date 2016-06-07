@@ -59,7 +59,7 @@ object ComplexTypeExample {
 
     cc.sql(s"load data local inpath '$dataPath' into table $tableName " +
       "options ('COMPLEX_DELIMITER_LEVEL_1'='$', 'COMPLEX_DELIMITER_LEVEL_2'=':')")
-    
+
     // filter on complex ARRAY type with index filter
     cc.sql(s"SELECT mobile, proddate.activeDeactivedate, MAC[0] FROM $tableName " +
       "WHERE MAC[0] LIKE 'MAC1%'").show
