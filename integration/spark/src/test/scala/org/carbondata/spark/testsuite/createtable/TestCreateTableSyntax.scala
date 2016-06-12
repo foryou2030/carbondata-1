@@ -33,7 +33,10 @@ import org.scalatest.BeforeAndAfterAll
  */
 class TestCreateTableSyntax extends QueryTest with BeforeAndAfterAll {
   
-  override def beforeAll {
+  override def beforeAll: Unit = {
+    sql("drop table if exists carbontable")
+    sql("drop table if exists table_001")
+    sql("drop table if exists table_002")
   }
 
   test("Struct field with underscore and struct<struct> syntax check") {
@@ -56,6 +59,33 @@ class TestCreateTableSyntax extends QueryTest with BeforeAndAfterAll {
     }
   }
 
-  override def afterAll {
+  test("test carbon table create with duplicate columns in dictionary exclude") {
+    try {
+      sql("CREATE TABLE table_001 (imei string,age int,productdate timestamp,gamePointId double) " +
+        "STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('DICTIONARY_EXCLUDE'='imei,imei')")
+    } catch {
+      case e : MalformedCarbonCommandException => {
+        assert(e.getMessage.equals("Duplicate column found with DICTIONARY_EXCLUDE column: imei. " +
+          "Please check create table statement."))
+      }
+    }
+  }
+
+  test("test carbon table create with duplicate columns in dictionary include") {
+    try {
+      sql("CREATE TABLE table_002 (imei string,age int,productdate timestamp,gamePointId double) " +
+        "STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('DICTIONARY_INCLUDE'='age,age')")
+    } catch {
+      case e : MalformedCarbonCommandException => {
+        assert(e.getMessage.equals("Duplicate column found with DICTIONARY_INCLUDE column: age. " +
+          "Please check create table statement."))
+      }
+    }
+  }
+
+  override def afterAll: Unit = {
+    sql("drop table if exists carbontable")
+    sql("drop table if exists table_001")
+    sql("drop table if exists table_002")
   }
 }

@@ -684,6 +684,15 @@ class CarbonSqlParser()
     // All excluded cols should be there in create table cols
     if (tableProperties.get("DICTIONARY_EXCLUDE").isDefined) {
       dictExcludeCols = tableProperties.get("DICTIONARY_EXCLUDE").get.split(',').map(_.trim)
+
+      // Check if there is any duplicate DICTIONARY_EXCLUDE column.
+      dictExcludeCols.groupBy(_.toLowerCase()).foreach(f => if (f._2.size > 1) {
+        val name = f._1
+        val errorMsg = s"Duplicate column found with DICTIONARY_EXCLUDE " +
+          s"column: $name. Please check create table statement."
+        throw new MalformedCarbonCommandException(errorMsg)
+      })
+
       dictExcludeCols
         .map { dictExcludeCol =>
           if (!fields.exists(x => x.column.equalsIgnoreCase(dictExcludeCol))) {
@@ -701,6 +710,15 @@ class CarbonSqlParser()
     // All included cols should be there in create table cols
     if (tableProperties.get("DICTIONARY_INCLUDE").isDefined) {
       dictIncludeCols = tableProperties.get("DICTIONARY_INCLUDE").get.split(",").map(_.trim)
+
+      // Check if there is any duplicate DICTIONARY_INCLUDE column.
+      dictIncludeCols.groupBy(_.toLowerCase()).foreach(f => if (f._2.size > 1) {
+        val name = f._1
+        val errorMsg = s"Duplicate column found with DICTIONARY_INCLUDE " +
+          s"column: $name. Please check create table statement."
+        throw new MalformedCarbonCommandException(errorMsg)
+      })
+
       dictIncludeCols.map { distIncludeCol =>
           if (!fields.exists(x => x.column.equalsIgnoreCase(distIncludeCol))) {
             val errormsg = "DICTIONARY_INCLUDE column: " + distIncludeCol +
