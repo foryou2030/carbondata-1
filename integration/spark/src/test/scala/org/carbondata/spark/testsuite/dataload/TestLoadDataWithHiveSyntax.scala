@@ -184,21 +184,21 @@ class TestLoadDataWithHiveSyntax extends QueryTest with BeforeAndAfterAll {
   }
 
   test("test carbon table data loading when table name is in different case with create table, for UpperCase") {
-    sql("create table UPPERCASECUBE(empno Int, empname String, designation String, " +
+    sql("create table UPPERCASEcube(empno Int, empname String, designation String, " +
       "doj String, workgroupcategory Int, workgroupcategoryname String, deptno Int, " +
       "deptname String, projectcode Int, projectjoindate String, projectenddate String, " +
       "attendance Int,utilization Double,salary Double) STORED BY 'org.apache.carbondata.format'")
     sql("LOAD DATA local inpath './src/test/resources/data.csv' INTO table uppercasecube OPTIONS('DELIMITER'=',', 'QUOTECHAR'='\"')")
-    sql("drop table Uppercasecube")
+    sql("drop table UpperCaseCube")
   }
 
   test("test carbon table data loading when table name is in different case with create table ,for LowerCase") {
-    sql("create table Lowercasecube(empno Int, empname String, designation String, " +
+    sql("create table lowercaseCUBE(empno Int, empname String, designation String, " +
       "doj String, workgroupcategory Int, workgroupcategoryname String, deptno Int, " +
       "deptname String, projectcode Int, projectjoindate String, projectenddate String, " +
       "attendance Int,utilization Double,salary Double) STORED BY 'org.apache.carbondata.format'")
     sql("LOAD DATA local inpath './src/test/resources/data.csv' INTO table LOWERCASECUBE OPTIONS('DELIMITER'=',', 'QUOTECHAR'='\"')")
-    sql("drop table Lowercasecube")
+    sql("drop table LowErcasEcube")
   }
   
   override def afterAll {

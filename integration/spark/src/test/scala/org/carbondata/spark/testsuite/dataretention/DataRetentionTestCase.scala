@@ -167,16 +167,16 @@ class DataRetentionTestCase extends QueryTest with BeforeAndAfterAll {
       """)
 
     sql("LOAD DATA LOCAL INPATH '" + resource +
-      "emptyDimensionData.csv' into table carbon_TABLE_1")
+      "emptyDimensionData.csv' into table CarBon_tAbLE_1")
 
     checkAnswer(
-      sql("select count(*) from carbon_TABLE_1"), Seq(Row(20)))
+      sql("select count(*) from cArbon_TaBlE_1"), Seq(Row(20)))
 
     sql("delete segments from table carbon_TABLE_1 " +
       "where starttime before '2099-07-28 11:00:00'")
 
     checkAnswer(
-      sql("select count(*) from carbon_TABLE_1"), Seq(Row(0)))
+      sql("select count(*) from caRbon_TabLe_1"), Seq(Row(0)))
 
   }
 
