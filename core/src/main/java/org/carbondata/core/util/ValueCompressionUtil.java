@@ -160,6 +160,10 @@ public final class ValueCompressionUtil {
           getDataType((double) maxValue - (double) minValue, decimal, dataTypeSelected))) {
         return new CompressionFinder(COMPRESSION_TYPE.MAX_MIN, DataType.DATA_DOUBLE,
             getDataType((double) maxValue - (double) minValue, decimal, dataTypeSelected));
+      } else if (getSize(getDataType((double) maxValue, decimal, dataTypeSelected)) < getSize(
+              getDataType((double) maxValue - (double) minValue, decimal, dataTypeSelected))) {
+        return new CompressionFinder(COMPRESSION_TYPE.NONE, DataType.DATA_DOUBLE,
+                getDataType((double) maxValue - (double) minValue, decimal, dataTypeSelected));
       } else {
         return new CompressionFinder(COMPRESSION_TYPE.NONE, DataType.DATA_DOUBLE,
             getDataType((double) maxValue, decimal, dataTypeSelected));
@@ -547,9 +551,6 @@ public final class ValueCompressionUtil {
    */
   public static ValueCompressonHolder.UnCompressValue unCompressNone(DataType compDataType,
       DataType actualDataType) {
-    if (actualDataType == DataType.DATA_LONG) {
-      return new UnCompressDefaultLong();
-    } else {
       switch (compDataType) {
         case DATA_BYTE:
 
@@ -575,7 +576,6 @@ public final class ValueCompressionUtil {
 
           return new UnCompressNoneDefault();
 
-      }
     }
   }
 
