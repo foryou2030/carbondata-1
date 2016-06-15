@@ -27,33 +27,7 @@ import org.carbondata.common.logging.LogServiceFactory;
 import org.carbondata.core.datastorage.store.compression.MeasureMetaDataModel;
 import org.carbondata.core.datastorage.store.compression.ValueCompressionModel;
 import org.carbondata.core.datastorage.store.compression.ValueCompressonHolder;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressByteArray;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinByte;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinByteForLong;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinDefault;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinDefaultLong;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinFloat;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinInt;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinLong;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinShort;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalByte;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalDefault;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalFloat;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalInt;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalLong;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalMaxMinByte;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalMaxMinDefault;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalMaxMinFloat;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalMaxMinInt;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalMaxMinLong;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalMaxMinShort;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNonDecimalShort;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNoneByte;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNoneDefault;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNoneFloat;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNoneInt;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNoneLong;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressNoneShort;
+import org.carbondata.core.datastorage.store.compression.type.*;
 
 public final class ValueCompressionUtil {
 
@@ -149,7 +123,8 @@ public final class ValueCompressionUtil {
         return new CompressionFinder(COMPRESSION_TYPE.CUSTOM_BIGDECIMAL, DataType.DATA_BYTE,
             DataType.DATA_BYTE);
       case 'l':
-        return new CompressionFinder(COMPRESSION_TYPE.NONE, DataType.DATA_LONG, DataType.DATA_LONG);
+        return new CompressionFinder(COMPRESSION_TYPE.NONE,
+                DataType.DATA_BIGINT, DataType.DATA_BIGINT);
       default:
         break;
     }
@@ -314,6 +289,7 @@ public final class ValueCompressionUtil {
         return intResult;
 
       case DATA_LONG:
+      case DATA_BIGINT:
 
         long[] longResult = new long[value.length];
 
@@ -377,6 +353,7 @@ public final class ValueCompressionUtil {
         return intResult;
 
       case DATA_LONG:
+      case DATA_BIGINT:
 
         long[] longResult = new long[value.length];
 
@@ -443,6 +420,7 @@ public final class ValueCompressionUtil {
         return intResult;
 
       case DATA_LONG:
+      case DATA_BIGINT:
 
         long[] longResult = new long[value.length];
 
@@ -513,6 +491,7 @@ public final class ValueCompressionUtil {
         return intResult;
 
       case DATA_LONG:
+      case DATA_BIGINT:
 
         long[] longResult = new long[value.length];
 
@@ -550,31 +529,35 @@ public final class ValueCompressionUtil {
    */
   public static ValueCompressonHolder.UnCompressValue unCompressNone(DataType compDataType,
       DataType actualDataType) {
-    switch (compDataType) {
-      case DATA_BYTE:
+    if (actualDataType == DataType.DATA_BIGINT) {
+      return new UnCompressDefaultLong();
+    } else {
+      switch (compDataType) {
+        case DATA_BYTE:
 
-        return new UnCompressNoneByte();
+          return new UnCompressNoneByte();
 
-      case DATA_SHORT:
+        case DATA_SHORT:
 
-        return new UnCompressNoneShort();
+          return new UnCompressNoneShort();
 
-      case DATA_INT:
+        case DATA_INT:
 
-        return new UnCompressNoneInt();
+          return new UnCompressNoneInt();
 
-      case DATA_LONG:
+        case DATA_LONG:
+        case DATA_BIGINT:
 
-        return new UnCompressNoneLong();
+          return new UnCompressNoneLong();
 
-      case DATA_FLOAT:
+        case DATA_FLOAT:
 
-        return new UnCompressNoneFloat();
+          return new UnCompressNoneFloat();
 
-      default:
+        default:
 
-        return new UnCompressNoneDefault();
-
+          return new UnCompressNoneDefault();
+      }
     }
   }
 
@@ -583,11 +566,12 @@ public final class ValueCompressionUtil {
    */
   public static ValueCompressonHolder.UnCompressValue unCompressMaxMin(DataType compDataType,
       DataType actualDataType) {
-    if (actualDataType == DataType.DATA_LONG) {
+    if (actualDataType == DataType.DATA_LONG || actualDataType == DataType.DATA_BIGINT) {
       switch (compDataType) {
         case DATA_BYTE:
           return new UnCompressMaxMinByteForLong();
         case DATA_LONG:
+        case DATA_BIGINT:
           return new UnCompressMaxMinDefaultLong();
         default:
           return new UnCompressMaxMinDefaultLong();
@@ -607,6 +591,7 @@ public final class ValueCompressionUtil {
           return new UnCompressMaxMinInt();
 
         case DATA_LONG:
+        case DATA_BIGINT:
 
           return new UnCompressMaxMinLong();
 
@@ -641,6 +626,7 @@ public final class ValueCompressionUtil {
         return new UnCompressNonDecimalInt();
 
       case DATA_LONG:
+      case DATA_BIGINT:
 
         return new UnCompressNonDecimalLong();
 
@@ -674,6 +660,7 @@ public final class ValueCompressionUtil {
         return new UnCompressNonDecimalMaxMinInt();
 
       case DATA_LONG:
+      case DATA_BIGINT:
 
         return new UnCompressNonDecimalMaxMinLong();
 
@@ -878,6 +865,9 @@ public final class ValueCompressionUtil {
      *
      */
     DATA_LONG(), /**
+     *
+     */
+    DATA_BIGINT(), /**
      *
      */
     DATA_DOUBLE();
