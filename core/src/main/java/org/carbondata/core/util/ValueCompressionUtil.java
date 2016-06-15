@@ -28,7 +28,6 @@ import org.carbondata.core.datastorage.store.compression.MeasureMetaDataModel;
 import org.carbondata.core.datastorage.store.compression.ValueCompressionModel;
 import org.carbondata.core.datastorage.store.compression.ValueCompressonHolder;
 import org.carbondata.core.datastorage.store.compression.type.UnCompressByteArray;
-import org.carbondata.core.datastorage.store.compression.type.UnCompressDefaultLong;
 import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinByte;
 import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinByteForLong;
 import org.carbondata.core.datastorage.store.compression.type.UnCompressMaxMinDefault;
@@ -551,30 +550,30 @@ public final class ValueCompressionUtil {
    */
   public static ValueCompressonHolder.UnCompressValue unCompressNone(DataType compDataType,
       DataType actualDataType) {
-      switch (compDataType) {
-        case DATA_BYTE:
+    switch (compDataType) {
+      case DATA_BYTE:
 
-          return new UnCompressNoneByte();
+        return new UnCompressNoneByte();
 
-        case DATA_SHORT:
+      case DATA_SHORT:
 
-          return new UnCompressNoneShort();
+        return new UnCompressNoneShort();
 
-        case DATA_INT:
+      case DATA_INT:
 
-          return new UnCompressNoneInt();
+        return new UnCompressNoneInt();
 
-        case DATA_LONG:
+      case DATA_LONG:
 
-          return new UnCompressNoneLong();
+        return new UnCompressNoneLong();
 
-        case DATA_FLOAT:
+      case DATA_FLOAT:
 
-          return new UnCompressNoneFloat();
+        return new UnCompressNoneFloat();
 
-        default:
+      default:
 
-          return new UnCompressNoneDefault();
+        return new UnCompressNoneDefault();
 
     }
   }
