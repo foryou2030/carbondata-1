@@ -380,7 +380,6 @@ public final class ValueCompressionUtil {
         return intResult;
 
       case DATA_LONG:
-      case DATA_BIGINT:
 
         long[] longResult = new long[value.length];
 
@@ -447,7 +446,6 @@ public final class ValueCompressionUtil {
         return intResult;
 
       case DATA_LONG:
-      case DATA_BIGINT:
 
         long[] longResult = new long[value.length];
 
@@ -518,7 +516,6 @@ public final class ValueCompressionUtil {
         return intResult;
 
       case DATA_LONG:
-      case DATA_BIGINT:
 
         long[] longResult = new long[value.length];
 
@@ -573,7 +570,6 @@ public final class ValueCompressionUtil {
           return new UnCompressNoneInt();
 
         case DATA_LONG:
-        case DATA_BIGINT:
 
           return new UnCompressNoneLong();
 
@@ -593,12 +589,11 @@ public final class ValueCompressionUtil {
    */
   public static ValueCompressonHolder.UnCompressValue unCompressMaxMin(DataType compDataType,
       DataType actualDataType) {
-    if (actualDataType == DataType.DATA_LONG || actualDataType == DataType.DATA_BIGINT) {
+    if (actualDataType == DataType.DATA_LONG) {
       switch (compDataType) {
         case DATA_BYTE:
           return new UnCompressMaxMinByteForLong();
         case DATA_LONG:
-        case DATA_BIGINT:
           return new UnCompressMaxMinDefaultLong();
         default:
           return new UnCompressMaxMinDefaultLong();
@@ -618,7 +613,6 @@ public final class ValueCompressionUtil {
           return new UnCompressMaxMinInt();
 
         case DATA_LONG:
-        case DATA_BIGINT:
 
           return new UnCompressMaxMinLong();
 
@@ -653,7 +647,6 @@ public final class ValueCompressionUtil {
         return new UnCompressNonDecimalInt();
 
       case DATA_LONG:
-      case DATA_BIGINT:
 
         return new UnCompressNonDecimalLong();
 
@@ -687,7 +680,6 @@ public final class ValueCompressionUtil {
         return new UnCompressNonDecimalMaxMinInt();
 
       case DATA_LONG:
-      case DATA_BIGINT:
 
         return new UnCompressNonDecimalMaxMinLong();
 
