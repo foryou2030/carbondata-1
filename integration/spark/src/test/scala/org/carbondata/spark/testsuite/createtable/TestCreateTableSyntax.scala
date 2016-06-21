@@ -19,7 +19,6 @@
 
 package org.carbondata.spark.testsuite.createtable
 
-import org.apache.spark.sql.Row
 import org.apache.spark.sql.common.util.CarbonHiveContext._
 import org.apache.spark.sql.common.util.QueryTest
 
@@ -53,6 +52,33 @@ class TestCreateTableSyntax extends QueryTest with BeforeAndAfterAll {
     } catch {
       case e : MalformedCarbonCommandException => {
         assert(e.getMessage.equals("DICTIONARY_EXCLUDE is unsupported for complex datatype column: mobile"))
+      }
+    }
+    sql("drop table if exists carbontable")
+  }
+
+  test("test carbon table create with double datatype as dictionary exclude") {
+    try {
+      sql("create table carbontable(id int, name string, dept string, mobile array<string>, "+
+        "country string, salary double) STORED BY 'org.apache.carbondata.format' " +
+        "TBLPROPERTIES('DICTIONARY_EXCLUDE'='salary')")
+    } catch {
+      case e : MalformedCarbonCommandException => {
+        assert(e.getMessage.equals("DICTIONARY_EXCLUDE is unsupported for double " +
+          "data type column: salary"))
+      }
+    }
+  }
+
+  test("test carbon table create with decimal datatype as dictionary exclude") {
+    try {
+      sql("create table carbontable(id int, name string, dept string, mobile array<string>, "+
+        "country string, salary decimal) STORED BY 'org.apache.carbondata.format' " +
+        "TBLPROPERTIES('DICTIONARY_EXCLUDE'='salary')")
+    } catch {
+      case e : MalformedCarbonCommandException => {
+        assert(e.getMessage.equals("DICTIONARY_EXCLUDE is unsupported for decimal " +
+          "data type column: salary"))
       }
     }
   }
