@@ -686,18 +686,18 @@ class CarbonSqlParser()
             val errormsg = "DICTIONARY_EXCLUDE column: " + dictExcludeCol +
               " does not exist in table. Please check create table statement."
             throw new MalformedCarbonCommandException(errormsg)
-          } else if (isComplexDimDictionaryExclude(fields.find (x =>
-              x.column.equalsIgnoreCase(dictExcludeCol)).get.dataType.get)) {
-            val errormsg = "DICTIONARY_EXCLUDE is unsupported for complex datatype column: " +
-              dictExcludeCol
-            throw new MalformedCarbonCommandException(errormsg)
-          } else if (isDoubleDecimalColDictionaryExclude(fields.find (x =>
-            x.column.equalsIgnoreCase(dictExcludeCol)).get.dataType.get)) {
+          } else {
             val dataType = fields.find (x =>
               x.column.equalsIgnoreCase(dictExcludeCol)).get.dataType.get
-            val errorMsg = "DICTIONARY_EXCLUDE is unsupported for " + dataType.toLowerCase() +
-              " data type column: " + dictExcludeCol
-            throw new MalformedCarbonCommandException(errorMsg)
+            if (isComplexDimDictionaryExclude(dataType)) {
+              val errormsg = "DICTIONARY_EXCLUDE is unsupported for complex datatype column: " +
+                dictExcludeCol
+              throw new MalformedCarbonCommandException(errormsg)
+            } else if (isDoubleDecimalColDictionaryExclude(dataType)) {
+              val errorMsg = "DICTIONARY_EXCLUDE is unsupported for " + dataType.toLowerCase() +
+                " data type column: " + dictExcludeCol
+              throw new MalformedCarbonCommandException(errorMsg)
+            }
           }
         }
     }

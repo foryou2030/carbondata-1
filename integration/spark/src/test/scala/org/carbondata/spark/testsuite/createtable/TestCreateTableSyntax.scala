@@ -49,6 +49,7 @@ class TestCreateTableSyntax extends QueryTest with BeforeAndAfterAll {
       sql("create table carbontable(id int, name string, dept string, mobile array<string>, "+
           "country string, salary double) STORED BY 'org.apache.carbondata.format' " +
           "TBLPROPERTIES('DICTIONARY_EXCLUDE'='dept,mobile')")
+      assert(false)
     } catch {
       case e : MalformedCarbonCommandException => {
         assert(e.getMessage.equals("DICTIONARY_EXCLUDE is unsupported for complex datatype column: mobile"))
@@ -62,6 +63,7 @@ class TestCreateTableSyntax extends QueryTest with BeforeAndAfterAll {
       sql("create table carbontable(id int, name string, dept string, mobile array<string>, "+
         "country string, salary double) STORED BY 'org.apache.carbondata.format' " +
         "TBLPROPERTIES('DICTIONARY_EXCLUDE'='salary')")
+      assert(false)
     } catch {
       case e : MalformedCarbonCommandException => {
         assert(e.getMessage.equals("DICTIONARY_EXCLUDE is unsupported for double " +
@@ -76,6 +78,7 @@ class TestCreateTableSyntax extends QueryTest with BeforeAndAfterAll {
       sql("create table carbontable(id int, name string, dept string, mobile array<string>, "+
         "country string, salary decimal) STORED BY 'org.apache.carbondata.format' " +
         "TBLPROPERTIES('DICTIONARY_EXCLUDE'='salary')")
+      assert(false)
     } catch {
       case e : MalformedCarbonCommandException => {
         assert(e.getMessage.equals("DICTIONARY_EXCLUDE is unsupported for decimal " +
