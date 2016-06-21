@@ -68,6 +68,7 @@ class TestCreateTableSyntax extends QueryTest with BeforeAndAfterAll {
           "data type column: salary"))
       }
     }
+    sql("drop table if exists carbontable")
   }
 
   test("test carbon table create with decimal datatype as dictionary exclude") {

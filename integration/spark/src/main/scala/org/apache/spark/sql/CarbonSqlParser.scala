@@ -778,7 +778,7 @@ class CarbonSqlParser()
     dimensionType.exists(x => x.equalsIgnoreCase(dimensionDataType))
   }
 
-  /**
+   /**
     * detects whether double or decimal column is part of dictionary_exclude
     */
   def isDoubleDecimalColDictionaryExclude(columnDataType: String): Boolean = {
