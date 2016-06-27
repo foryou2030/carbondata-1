@@ -256,10 +256,10 @@ public final class CarbonProperties {
       }
     } catch (NumberFormatException e) {
       LOGGER.info("The high cardinality threshold value \"" + highcardThresholdStr
-          + "\" is invalid. Using the default value \""
-          + CarbonCommonConstants.HIGH_CARDINALITY_THRESHOLD_DEFAULT);
+          + "\" is invalid. Using the min value \""
+          + CarbonCommonConstants.HIGH_CARDINALITY_THRESHOLD_MIN);
       carbonProperties.setProperty(CarbonCommonConstants.HIGH_CARDINALITY_THRESHOLD,
-          CarbonCommonConstants.HIGH_CARDINALITY_THRESHOLD_DEFAULT);
+          CarbonCommonConstants.HIGH_CARDINALITY_THRESHOLD_MIN + "");
     }
   }
 
