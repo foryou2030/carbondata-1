@@ -360,7 +360,6 @@ class CarbonGlobalDictionaryGenerateRDD(
     iter
   }
 }
-
 /**
  * Set column dictionry patition format
  *

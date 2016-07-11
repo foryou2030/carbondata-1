@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.carbondata.integration.spark.util
+package org.carbondata.spark.util
 
 import java.io.File
 
@@ -25,7 +25,6 @@ import org.apache.spark.sql.common.util.{CarbonHiveContext, QueryTest}
 import org.apache.spark.sql.{CarbonEnv, CarbonRelation}
 import org.carbondata.core.carbon.CarbonDataLoadSchema
 import org.carbondata.spark.load.CarbonLoadModel
-import org.carbondata.spark.util.GlobalDictionaryUtil
 import org.scalatest.BeforeAndAfterAll
 
 /**
@@ -34,7 +33,7 @@ import org.scalatest.BeforeAndAfterAll
   * @date: Apr 10, 2016 10:34:58 PM
   * @See org.carbondata.integration.spark.util.GlobalDictionaryUtil
   */
-class StreamSmartLocalDictionaryTestCase extends QueryTest with BeforeAndAfterAll {
+class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfterAll {
 
   var pwd: String = _
   var sampleRelation: CarbonRelation = _
@@ -50,7 +49,6 @@ class StreamSmartLocalDictionaryTestCase extends QueryTest with BeforeAndAfterAl
     val carbonLoadModel = new CarbonLoadModel
     carbonLoadModel.setTableName(relation.cubeMeta.carbonTableIdentifier.getDatabaseName)
     carbonLoadModel.setDatabaseName(relation.cubeMeta.carbonTableIdentifier.getTableName)
-    // carbonLoadModel.setSchema(relation.cubeMeta.schema)
     val table = relation.cubeMeta.carbonTable
     val carbonSchema = new CarbonDataLoadSchema(table)
     carbonLoadModel.setDatabaseName(table.getDatabaseName)
