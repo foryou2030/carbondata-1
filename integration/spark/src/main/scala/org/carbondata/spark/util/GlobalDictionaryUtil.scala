@@ -26,7 +26,6 @@ import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, HashMap, HashSet}
 import scala.language.implicitConversions
 import scala.util.control.Breaks.{break, breakable}
-
 import org.apache.commons.lang3.{ArrayUtils, StringUtils}
 import org.apache.spark.Logging
 import org.apache.spark.rdd.RDD
@@ -34,7 +33,6 @@ import org.apache.spark.sql.{CarbonEnv, CarbonRelation, DataFrame, SQLContext}
 import org.apache.spark.sql.hive.CarbonMetastoreCatalog
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.util.FileUtils
-
 import org.carbondata.common.factory.CarbonCommonFactory
 import org.carbondata.core.cache.dictionary.Dictionary
 import org.carbondata.core.carbon.CarbonDataLoadSchema
@@ -44,6 +42,7 @@ import org.carbondata.core.carbon.metadata.encoder.Encoding
 import org.carbondata.core.carbon.metadata.schema.table.column.CarbonDimension
 import org.carbondata.core.carbon.path.CarbonStorePath
 import org.carbondata.core.constants.CarbonCommonConstants
+import org.carbondata.core.datastorage.store.impl.FileFactory
 import org.carbondata.core.reader.CarbonDictionaryReader
 import org.carbondata.core.util.CarbonProperties
 import org.carbondata.core.writer.CarbonDictionaryWriter
@@ -617,6 +616,28 @@ object GlobalDictionaryUtil extends Logging {
   }
 
   /**
+   * validate local dictionary files
+   *
+   * @param localDictionaryPath
+   * @param dictionaryFileExtension
+   * @return Boolean
+   */
+  private def validateLocalDictionary(localDictionaryPath: String,
+                                        dictionaryFileExtension: String): Boolean = {
+    val fileType = FileFactory.getFileType(localDictionaryPath)
+    val filePath = FileFactory.getCarbonFile(localDictionaryPath, fileType)
+    val listFiles = filePath.listFiles()
+    if (listFiles.exists(file =>
+      file.getName.endsWith(dictionaryFileExtension) && file.getSize > 0)) {
+      true
+    } else {
+      logInfo("No local dictionary found or empty local dictionary files! " +
+        "Won't generate new dictionary.")
+      false
+    }
+  }
+
+  /**
    * generate global dictionary with SQLContext and CarbonLoadModel
    *
    * @param sqlContext  sql context
@@ -699,38 +720,41 @@ object GlobalDictionaryUtil extends Logging {
         }
       } else {
         logInfo("Generate global dictionary from local dictionary files!")
-        // fill the map[columnIndex -> columnName]
-        var fileHeaders : Array[String] = null
-        if(!StringUtils.isEmpty(carbonLoadModel.getCsvHeader)) {
-          val splitColumns = carbonLoadModel.getCsvHeader.split("" + CSVWriter.DEFAULT_SEPARATOR)
-          val fileHeadersArr = new ArrayBuffer[String]()
-          for(i <- 0 until splitColumns.length) {
-            fileHeadersArr += splitColumns(i).trim.toLowerCase()
+        val dictionaryFileExtension = carbonLoadModel.getDictFileExt
+        val valid = validateLocalDictionary(localDictionaryPath, dictionaryFileExtension)
+        if(valid) {
+          // fill the map[columnIndex -> columnName]
+          var fileHeaders : Array[String] = null
+          if(!StringUtils.isEmpty(carbonLoadModel.getCsvHeader)) {
+            val splitColumns = carbonLoadModel.getCsvHeader.split("" + CSVWriter.DEFAULT_SEPARATOR)
+            val fileHeadersArr = new ArrayBuffer[String]()
+            for(i <- 0 until splitColumns.length) {
+              fileHeadersArr += splitColumns(i).trim.toLowerCase()
+            }
+            fileHeaders = fileHeadersArr.toArray
+          } else {
+            logError("Not found file header !")
+            throw new IOException("Failed to get file header")
           }
-          fileHeaders = fileHeadersArr.toArray
-        } else {
-          logError("Not found file header !")
-          throw new IOException("Failed to get file header")
-        }
-        // prune columns according to the CSV file header, dimension columns
-        val (requireDimension, requireColumnNames) =
-          pruneDimensions(dimensions, fileHeaders, fileHeaders)
-        if (requireDimension.nonEmpty) {
-          val model = createDictionaryLoadModel(carbonLoadModel, table, requireDimension,
-            hdfsLocation, dictfolderPath, false)
-          val dictionaryFileExtension = carbonLoadModel.getDictFileExt
-          // read local dictionary file, and group by key
-          val localDictionaryRdd = readLocalDictionaryFiles(sqlContext, fileHeaders,
-            requireColumnNames, localDictionaryPath, dictionaryFileExtension)
-          // read exist dictionary and combine
-          val inputRDD = new CarbonLocalDictionaryCombineRDD(localDictionaryRdd, model)
-            .partitionBy(new ColumnPartitioner(model.primDimensions.length))
-          // generate global dictionary files
-          val statusList = new CarbonGlobalDictionaryGenerateRDD(inputRDD, model).collect()
-          // check result status
-          checkStatus(carbonLoadModel, sqlContext, model, statusList)
-        } else {
-          logInfo("have no column need to generate global dictionary")
+          // prune columns according to the CSV file header, dimension columns
+          val (requireDimension, requireColumnNames) =
+            pruneDimensions(dimensions, fileHeaders, fileHeaders)
+          if (requireDimension.nonEmpty) {
+            val model = createDictionaryLoadModel(carbonLoadModel, table, requireDimension,
+              hdfsLocation, dictfolderPath, false)
+            // read local dictionary file, and group by key
+            val localDictionaryRdd = readLocalDictionaryFiles(sqlContext, fileHeaders,
+              requireColumnNames, localDictionaryPath, dictionaryFileExtension)
+            // read exist dictionary and combine
+            val inputRDD = new CarbonLocalDictionaryCombineRDD(localDictionaryRdd, model)
+              .partitionBy(new ColumnPartitioner(model.primDimensions.length))
+            // generate global dictionary files
+            val statusList = new CarbonGlobalDictionaryGenerateRDD(inputRDD, model).collect()
+            // check result status
+            checkStatus(carbonLoadModel, sqlContext, model, statusList)
+          } else {
+            logInfo("have no column need to generate global dictionary")
+          }
         }
       }
     } catch {

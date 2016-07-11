@@ -97,8 +97,6 @@ class CarbonSqlParser()
   protected val MAPPED = Keyword("MAPPED")
   protected val MEASURES = Keyword("MEASURES")
   protected val MULTILINE = Keyword("MULTILINE")
-  protected val LOCAL_DICTIONARY_PATH = Keyword("LOCAL_DICTIONARY_PATH")
-  protected val DICTIONARY_FILE_EXTENSION = Keyword("DICTIONARY_FILE_EXTENSION")
   protected val COMPLEX_DELIMITER_LEVEL_1 = Keyword("COMPLEX_DELIMITER_LEVEL_1")
   protected val COMPLEX_DELIMITER_LEVEL_2 = Keyword("COMPLEX_DELIMITER_LEVEL_2")
   protected val OPTIONS = Keyword("OPTIONS")
@@ -955,7 +953,8 @@ class CarbonSqlParser()
     val options = partionDataOptions.get.groupBy(x => x._1)
     val supportedOptions = Seq("DELIMITER", "QUOTECHAR", "FILEHEADER", "ESCAPECHAR", "MULTILINE",
       "COMPLEX_DELIMITER_LEVEL_1", "COMPLEX_DELIMITER_LEVEL_2", "COLUMNDICT",
-      "SERIALIZATION_NULL_FORMAT"
+      "SERIALIZATION_NULL_FORMAT",
+      "LOCAL_DICTIONARY_PATH", "DICTIONARY_FILE_EXTENSION"
     )
     var isSupported = true
     val invalidOptions = StringBuilder.newBuilder
@@ -1005,7 +1004,6 @@ class CarbonSqlParser()
   protected lazy val partitionOptions: Parser[(String, String)] =
     ((DELIMITER ~ stringLit) | (QUOTECHAR ~ stringLit) | (FILEHEADER ~ stringLit) |
       (ESCAPECHAR ~ stringLit) | (MULTILINE ~ stringLit) |
-      (LOCAL_DICTIONARY_PATH ~ stringLit) | (DICTIONARY_FILE_EXTENSION ~ stringLit) |
       (COMPLEX_DELIMITER_LEVEL_1 ~ stringLit) | (COMPLEX_DELIMITER_LEVEL_2 ~ stringLit)) ^^ {
       case opt ~ optvalue => (opt, optvalue)
       case _ => ("", "")

@@ -161,6 +161,68 @@ case class DictionaryLoadModel(table: CarbonTableIdentifier,
 case class ColumnDistinctValues(values: Array[String], rowCount: Long) extends Serializable
 
 /**
+ * A RDD to combine local dictionary distinct values.
+ *
+ * @constructor create a RDD with RDD[(String, Iterable[String])]
+ * @param prev the input RDD[(String, Iterable[String])]
+ * @param model a model package load info
+ */
+class CarbonLocalDictionaryCombineRDD(
+                                       prev: RDD[(String, Iterable[String])],
+                                       model: DictionaryLoadModel)
+  extends RDD[(Int, ColumnDistinctValues)](prev) with Logging {
+
+  override def getPartitions: Array[Partition] =
+    firstParent[(String, Iterable[String])].partitions
+
+  override def compute(split: Partition, context: TaskContext
+                      ): Iterator[(Int, ColumnDistinctValues)] = {
+    val LOGGER = LogServiceFactory.getLogService(this.getClass().getName())
+
+    val distinctValuesList = new ArrayBuffer[(Int, HashSet[String])]
+    /*
+     * for local dictionary, all columns need to encoding and checking
+     * isHighCardinalityColumn, so no need to calculate rowcount
+     */
+    val rowCount = 0L
+    try {
+      val dimensionParsers =
+        GlobalDictionaryUtil.createDimensionParsers(model, distinctValuesList)
+      val dimNum = model.dimensions.length
+      // Map[dimColName -> dimColNameIndex]
+      val columnIndexMap = new HashMap[String, Int]()
+      for (j <- 0 until dimNum) {
+        columnIndexMap.put(model.dimensions(j).getColName, j)
+      }
+
+      var row: (String, Iterable[String]) = null
+      val rddIter = firstParent[(String, Iterable[String])].iterator(split, context)
+      // generate block distinct value set
+      while (rddIter.hasNext) {
+        row = rddIter.next()
+        if (row != null) {
+          columnIndexMap.get(row._1) match {
+            case Some(index) =>
+              for (record <- row._2) {
+                dimensionParsers(index).parseString(record)
+              }
+            case None =>
+          }
+        }
+      }
+    } catch {
+      case ex: Exception =>
+        LOGGER.error(ex)
+    }
+
+    distinctValuesList.map { iter =>
+      val valueList = iter._2.toArray
+      (iter._1, ColumnDistinctValues(valueList, rowCount))
+    }.iterator
+  }
+}
+
+/**
  * A RDD to combine distinct values in block.
  *
  * @constructor create a RDD with RDD[Row]
@@ -458,64 +520,5 @@ class CarbonColumnDictGenerateRDD(carbonLoadModel: CarbonLoadModel,
     }
     Array((distinctValues._1,
       ColumnDistinctValues(distinctValues._2.toArray, 0L))).iterator
-  }
-}
-
-/**
- * A RDD to combine local dictionary distinct values.
- *
- * @constructor create a RDD with RDD[(String, Iterable[String])]
- * @param prev the input RDD[(String, Iterable[String])]
- * @param model a model package load info
- */
-class CarbonLocalDictionaryCombineRDD(
-  prev: RDD[(String, Iterable[String])],
-  model: DictionaryLoadModel)
-  extends RDD[(Int, ColumnDistinctValues)](prev) with Logging {
-
-  override def getPartitions: Array[Partition] =
-    firstParent[(String, Iterable[String])].partitions
-
-  override def compute(split: Partition, context: TaskContext
-    ): Iterator[(Int, ColumnDistinctValues)] = {
-    val LOGGER = LogServiceFactory.getLogService(this.getClass().getName())
-
-    val distinctValuesList = new ArrayBuffer[(Int, HashSet[String])]
-    var rowCount = 0L
-    try {
-      val dimensionParsers =
-        GlobalDictionaryUtil.createDimensionParsers(model, distinctValuesList)
-      val dimNum = model.dimensions.length
-      // Map[dimColName -> dimColNameIndex]
-      val columnIndexMap = new HashMap[String, Int]()
-      for (j <- 0 until dimNum) {
-        columnIndexMap.put(model.dimensions(j).getColName, j)
-      }
-
-      var row: (String, Iterable[String]) = null
-      val rddIter = firstParent[(String, Iterable[String])].iterator(split, context)
-      // generate block distinct value set
-      while (rddIter.hasNext) {
-        row = rddIter.next()
-        if (row != null) {
-          columnIndexMap.get(row._1) match {
-            case Some(index) =>
-              for (record <- row._2) {
-                rowCount += 1
-                dimensionParsers(index).parseString(record)
-              }
-            case None =>
-          }
-        }
-      }
-    } catch {
-      case ex: Exception =>
-        LOGGER.error(ex)
-    }
-
-    distinctValuesList.map { iter =>
-      val valueList = iter._2.toArray
-      (iter._1, ColumnDistinctValues(valueList, rowCount))
-    }.iterator
   }
 }
