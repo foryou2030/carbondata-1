@@ -652,7 +652,7 @@ object GlobalDictionaryUtil extends Logging {
       // create dictionary folder if not exists
       val carbonTablePath = CarbonStorePath.getCarbonTablePath(hdfsLocation, table)
       val dictfolderPath = carbonTablePath.getMetadataDirectoryPath
-     // columns which need to generate global dictionary file
+      // columns which need to generate global dictionary file
       val carbonTable = carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable
       val dimensions = carbonTable.getDimensionByTableName(
         carbonTable.getFactTableName).asScala.toArray
