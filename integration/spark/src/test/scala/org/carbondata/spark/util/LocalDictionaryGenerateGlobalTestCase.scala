@@ -110,7 +110,7 @@ class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfte
     complexRelation = catalog.lookupRelation1(Option("default"), "complextypes", None)(CarbonHiveContext).asInstanceOf[CarbonRelation]
   }
 
-  test("Support generate global dictionary from streamSmart local dictionary") {
+  test("Support generate global dictionary from local dictionary files") {
     val header = "id,name,city,age"
     val carbonLoadModel = buildCarbonLoadModel(sampleRelation, null, null, header, sampleLocalDictionaryFile)
     GlobalDictionaryUtil
@@ -119,7 +119,7 @@ class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfte
         sampleRelation.cubeMeta.storePath)
   }
 
-  test("Support generate global dictionary from streamSmart local dictionary file for complex type") {
+  test("Support generate global dictionary from local dictionary files for complex type") {
     val header = "deviceInformationId,channelsId,ROMSize,purchasedate,mobile,MAC,locationinfo,proddate,gamePointId,contractNumber"
     val carbonLoadModel = buildCarbonLoadModel(complexRelation, null, null, header, complexLocalDictionaryFile)
     GlobalDictionaryUtil
