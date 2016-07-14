@@ -21,18 +21,19 @@ import java.io.DataOutputStream
 
 import scala.collection.mutable.{ArrayBuffer, HashSet}
 
+import org.apache.spark.Logging
 import org.apache.spark.SparkContext
 
 import org.carbondata.core.datastorage.store.impl.FileFactory
 
-object LocalDictionaryUtil {
+object LocalDictionaryUtil extends Logging{
   def extractDictionary(sc: SparkContext,
                         srcData: String,
                         outputPath: String,
                         fileHeader: String,
                         dictCol: String): Unit = {
+    val fileHeaderArr = fileHeader.split(",")
     val dictionaryRdd = sc.textFile(srcData).flatMap(x => {
-      val fileHeaderArr = fileHeader.split(",")
       val tokens = x.split(",")
       val result = new ArrayBuffer[(Int, String)]()
       for (i <- 0 until fileHeaderArr.length) {
@@ -41,11 +42,7 @@ object LocalDictionaryUtil {
             result += ((i, tokens(i)))
           } catch {
             case ex: ArrayIndexOutOfBoundsException =>
-              // scalastyle:off println
-              println("#########################")
-              println(x)
-              println("#########################")
-              // scalastyle:on println
+              logError("Read a bad record: " + x)
           }
         }
       }
@@ -70,11 +67,7 @@ object LocalDictionaryUtil {
       }
     } catch {
       case ex: Exception =>
-        // scalastyle:off println
-        println("#########################")
-        println(ex.toString)
-        println("#########################")
-        // scalastyle:on println
+        logError("Clean dictionary catching exception:" + ex)
     }
   }
 
@@ -92,14 +85,15 @@ object LocalDictionaryUtil {
       }
     } catch {
       case ex: Exception =>
-        // scalastyle:off println
-        println("#########################")
-        println(ex.toString)
-        println("#########################")
-        // scalastyle:on println
+        logError("Save dictionary to file catching exception:" + ex)
     } finally {
       if (writer != null) {
-        writer.close()
+        try {
+          writer.close()
+        } catch {
+          case ex: Exception =>
+            logError("Close output stream catching exception:" + ex)
+        }
       }
     }
   }

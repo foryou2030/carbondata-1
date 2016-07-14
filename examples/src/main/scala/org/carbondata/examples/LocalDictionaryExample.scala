@@ -20,14 +20,13 @@ import org.carbondata.core.constants.CarbonCommonConstants
 import org.carbondata.core.util.CarbonProperties
 import org.carbondata.examples.util.{InitForExamples, LocalDictionaryUtil}
 
-object UseLocalDictionaryExample {
+object LocalDictionaryExample {
   def main(args: Array[String]) {
     val cc = InitForExamples.createCarbonContext("CarbonExample")
     val testData = InitForExamples.currentPath + "/src/main/resources/data.csv"
     val csvHeader = "id,date,country,name,phonetype,serialname,salary"
     val dictCol = "|date|country|name|phonetype|serialname|"
     val localDictFile = InitForExamples.currentPath + "/src/main/resources/data.dictionary"
-    val localDictPath = InitForExamples.currentPath + "/src/main/resources/"
     // extract local dictionary files from source data
     LocalDictionaryUtil.extractDictionary(cc.sparkContext,
       testData, localDictFile, csvHeader, dictCol)
@@ -47,8 +46,7 @@ object UseLocalDictionaryExample {
     cc.sql(s"""
            LOAD DATA LOCAL INPATH '$testData' into table t3
            options('FILEHEADER'='id,date,country,name,phonetype,serialname,salary',
-           'LOCAL_DICTIONARY_PATH'='$localDictPath',
-           'DICTIONARY_FILE_EXTENSION'='.dictionary')
+           'LOCAL_DICTIONARY_PATH'='$localDictFile')
            """)
 
     cc.sql("""

@@ -33,7 +33,7 @@ import org.scalatest.BeforeAndAfterAll
   * @date: Apr 10, 2016 10:34:58 PM
   * @See org.carbondata.integration.spark.util.GlobalDictionaryUtil
   */
-class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfterAll {
+class LocalDictionaryTestCase extends QueryTest with BeforeAndAfterAll {
 
   var pwd: String = _
   var sampleRelation: CarbonRelation = _
@@ -61,7 +61,6 @@ class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfte
     carbonLoadModel.setComplexDelimiterLevel1("\\$")
     carbonLoadModel.setComplexDelimiterLevel2("\\:")
     carbonLoadModel.setLocalDictPath(localDictFilePath)
-    carbonLoadModel.setDictFileExt(".dictionary")
     carbonLoadModel
   }
 
@@ -76,8 +75,8 @@ class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfte
 
   def buildTestData() = {
     pwd = new File(this.getClass.getResource("/").getPath + "/../../").getCanonicalPath
-    sampleLocalDictionaryFile = pwd + "/src/test/resources/localdictionary/sample/20160423/1400_1405/"
-    complexLocalDictionaryFile = pwd + "/src/test/resources/localdictionary/complex/20160423/1400_1405/"
+    sampleLocalDictionaryFile = pwd + "/src/test/resources/localdictionary/sample/20160423/1400_1405/*.dictionary"
+    complexLocalDictionaryFile = pwd + "/src/test/resources/localdictionary/complex/20160423/1400_1405/*.dictionary"
   }
 
   def buildTable() = {
@@ -91,7 +90,7 @@ class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfte
     }
     try {
       sql(
-        "create table complextypes (deviceInformationId INT, channelsId string, " +
+        "create table complextypes (deviceInformationId string, channelsId string, " +
           "ROMSize string, purchasedate string, mobile struct<imei: string, imsi: string>, MAC " +
           "array<string>, locationinfo array<struct<ActiveAreaId: INT, ActiveCountry: string, " +
           "ActiveProvince: string, Activecity: string, ActiveDistrict: string, ActiveStreet: " +
@@ -117,6 +116,9 @@ class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfte
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
         sampleRelation.cubeMeta.storePath)
+
+    DictionaryTestCaseUtil.
+      checkDictionary(sampleRelation, "city", "shenzhen")
   }
 
   test("Support generate global dictionary from local dictionary files for complex type") {
@@ -126,6 +128,9 @@ class LocalDictionaryGenerateGlobalTestCase extends QueryTest with BeforeAndAfte
       .generateGlobalDictionary(CarbonHiveContext,
       carbonLoadModel,
       complexRelation.cubeMeta.storePath)
+
+    DictionaryTestCaseUtil.
+      checkDictionary(complexRelation, "channelsId", "1650")
   }
   
   override def afterAll {

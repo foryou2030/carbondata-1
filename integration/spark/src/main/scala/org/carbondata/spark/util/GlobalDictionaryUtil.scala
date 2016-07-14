@@ -29,7 +29,7 @@ import scala.util.control.Breaks.{break, breakable}
 import org.apache.commons.lang3.{ArrayUtils, StringUtils}
 import org.apache.spark.Logging
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{CarbonEnv, CarbonRelation, DataFrame, SQLContext}
+import org.apache.spark.sql.{CarbonEnv, CarbonRelation, DataFrame}
 import org.apache.spark.sql.hive.CarbonMetastoreCatalog
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.util.FileUtils
@@ -575,19 +575,16 @@ object GlobalDictionaryUtil extends Logging {
    * @param csvFileColumns
    * @param requireColumns
    * @param localDictionaryPath
-   * @param dicFileExtension
    * @return localDictionaryRdd
    */
   private def readLocalDictionaryFiles(sqlContext: SQLContext,
                                        csvFileColumns: Array[String],
                                        requireColumns: Array[String],
-                                       localDictionaryPath: String,
-                                       dicFileExtension: String) = {
+                                       localDictionaryPath: String) = {
     var localDictionaryRdd: RDD[(String, Iterable[String])] = null
-    val dictionaryFiles = localDictionaryPath + File.separator + "*" + dicFileExtension
     try {
       // read local dictionary file, and spilt (columnIndex, columnValue)
-      val basicRdd = sqlContext.sparkContext.textFile(dictionaryFiles)
+      val basicRdd = sqlContext.sparkContext.textFile(localDictionaryPath)
         .map(x => {
         val tokens = x.split("" + CSVWriter.DEFAULT_SEPARATOR)
         var index: Int = 0
@@ -619,22 +616,44 @@ object GlobalDictionaryUtil extends Logging {
    * validate local dictionary files
    *
    * @param localDictionaryPath
-   * @param dictionaryFileExtension
-   * @return Boolean
+   * @return (isNonempty, isDirectory)
    */
-  private def validateLocalDictionary(localDictionaryPath: String,
-                                        dictionaryFileExtension: String): Boolean = {
+  private def validateLocalDictionary(localDictionaryPath: String): Boolean = {
     val fileType = FileFactory.getFileType(localDictionaryPath)
     val filePath = FileFactory.getCarbonFile(localDictionaryPath, fileType)
-    val listFiles = filePath.listFiles()
-    if (listFiles.exists(file =>
-      file.getName.endsWith(dictionaryFileExtension) && file.getSize > 0)) {
-      true
+    // filepath regex, look like "/path/*.dictionary"
+    if (filePath.getName.startsWith("*")) {
+      val dictExt = filePath.getName.substring(1)
+      val listFiles = filePath.getParentFile.listFiles()
+      if (listFiles.exists(file =>
+        file.getName.endsWith(dictExt) && file.getSize > 0)) {
+        true
+      } else {
+        logInfo("No local dictionary found or empty local dictionary files! " +
+          "Won't generate new dictionary.")
+        false
+      }
     } else {
-      logInfo("No local dictionary found or empty local dictionary files! " +
-        "Won't generate new dictionary.")
-      false
+      if (filePath.exists() && filePath.getSize > 0) {
+        true
+      } else {
+        logInfo("No local dictionary found or empty local dictionary files! " +
+          "Won't generate new dictionary.")
+        false
+      }
     }
+//    if (filePath.isDirectory) {
+//      val dictExt = ".dictionary"
+//      val listFiles = filePath.listFiles()
+//      if (listFiles.exists(file =>
+//        file.getName.endsWith(dictExt) && file.getSize > 0)) {
+//        (true, true)
+//      } else {
+//        logInfo("No local dictionary found or empty local dictionary files! " +
+//          "Won't generate new dictionary.")
+//        (false, true)
+//      }
+//    }
   }
 
   /**
@@ -656,20 +675,20 @@ object GlobalDictionaryUtil extends Logging {
       val carbonTable = carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable
       val dimensions = carbonTable.getDimensionByTableName(
         carbonTable.getFactTableName).asScala.toArray
+      // generate global dict from pre defined column dict file
+      carbonLoadModel.initPredefDictMap()
+
       val localDictionaryPath = carbonLoadModel.getLocalDictPath
       if(StringUtils.isEmpty(localDictionaryPath)) {
         logInfo("Generate global dictionary from local source data files!")
         // load data by using dataSource com.databricks.spark.csv
         var df = loadDataFrame(sqlContext, carbonLoadModel)
-
         val headers = if (StringUtils.isEmpty(carbonLoadModel.getCsvHeader)) {
           df.columns
         }
         else {
           carbonLoadModel.getCsvHeader.split("" + CSVWriter.DEFAULT_SEPARATOR)
         }
-        // generate global dict from pre defined column dict file
-        carbonLoadModel.initPredefDictMap()
         val colDictFilePath = carbonLoadModel.getColDictFilePath
         if (colDictFilePath != null) {
           // generate predefined dictionary
@@ -720,9 +739,8 @@ object GlobalDictionaryUtil extends Logging {
         }
       } else {
         logInfo("Generate global dictionary from local dictionary files!")
-        val dictionaryFileExtension = carbonLoadModel.getDictFileExt
-        val valid = validateLocalDictionary(localDictionaryPath, dictionaryFileExtension)
-        if(valid) {
+        val isNonempty = validateLocalDictionary(localDictionaryPath)
+        if(isNonempty) {
           // fill the map[columnIndex -> columnName]
           var fileHeaders : Array[String] = null
           if(!StringUtils.isEmpty(carbonLoadModel.getCsvHeader)) {
@@ -744,7 +762,7 @@ object GlobalDictionaryUtil extends Logging {
               hdfsLocation, dictfolderPath, false)
             // read local dictionary file, and group by key
             val localDictionaryRdd = readLocalDictionaryFiles(sqlContext, fileHeaders,
-              requireColumnNames, localDictionaryPath, dictionaryFileExtension)
+              requireColumnNames, localDictionaryPath)
             // read exist dictionary and combine
             val inputRDD = new CarbonLocalDictionaryCombineRDD(localDictionaryRdd, model)
               .partitionBy(new ColumnPartitioner(model.primDimensions.length))
