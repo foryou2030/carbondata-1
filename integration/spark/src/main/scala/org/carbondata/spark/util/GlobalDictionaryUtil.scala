@@ -26,6 +26,7 @@ import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, HashMap, HashSet}
 import scala.language.implicitConversions
 import scala.util.control.Breaks.{break, breakable}
+
 import org.apache.commons.lang3.{ArrayUtils, StringUtils}
 import org.apache.spark.Logging
 import org.apache.spark.rdd.RDD
@@ -33,6 +34,7 @@ import org.apache.spark.sql.{CarbonEnv, CarbonRelation, DataFrame}
 import org.apache.spark.sql.hive.CarbonMetastoreCatalog
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.util.FileUtils
+
 import org.carbondata.common.factory.CarbonCommonFactory
 import org.carbondata.core.cache.dictionary.Dictionary
 import org.carbondata.core.carbon.CarbonDataLoadSchema
