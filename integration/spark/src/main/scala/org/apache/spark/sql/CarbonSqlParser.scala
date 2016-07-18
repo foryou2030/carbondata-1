@@ -954,7 +954,7 @@ class CarbonSqlParser()
     val supportedOptions = Seq("DELIMITER", "QUOTECHAR", "FILEHEADER", "ESCAPECHAR", "MULTILINE",
       "COMPLEX_DELIMITER_LEVEL_1", "COMPLEX_DELIMITER_LEVEL_2", "COLUMNDICT",
       "SERIALIZATION_NULL_FORMAT",
-      "LOCAL_DICTIONARY_PATH"
+      "ALL_DICTIONARY_PATH"
     )
     var isSupported = true
     val invalidOptions = StringBuilder.newBuilder

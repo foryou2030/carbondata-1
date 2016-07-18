@@ -1534,7 +1534,7 @@ private[sql] case class LoadCube(
       val escapeChar = partionValues.getOrElse("escapechar", "\\")
       val columnDict = partionValues.getOrElse("columndict", null)
       val serializationNullFormat = partionValues.getOrElse("serialization_null_format", "\\N")
-      val localDictionaryPath = partionValues.getOrElse("local_dictionary_path", "")
+      val allDictionaryPath = partionValues.getOrElse("all_dictionary_path", "")
       val complex_delimiter_level_1 = partionValues.getOrElse("complex_delimiter_level_1", "\\$")
       val complex_delimiter_level_2 = partionValues.getOrElse("complex_delimiter_level_2", "\\:")
       val multiLine = partionValues.getOrElse("multiline", "false").trim.toLowerCase match {
@@ -1561,7 +1561,7 @@ private[sql] case class LoadCube(
           CarbonUtil.escapeComplexDelimiterChar(complex_delimiter_level_2))
       }
       // set local dictionary path, and dictionary file extension
-      carbonLoadModel.setLocalDictPath(localDictionaryPath)
+      carbonLoadModel.setAllDictPath(allDictionaryPath)
 
       var partitionStatus = CarbonCommonConstants.STORE_LOADSTATUS_SUCCESS
       try {

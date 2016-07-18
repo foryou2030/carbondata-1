@@ -33,19 +33,19 @@ import org.scalatest.BeforeAndAfterAll
   * @date: Apr 10, 2016 10:34:58 PM
   * @See org.carbondata.integration.spark.util.GlobalDictionaryUtil
   */
-class LocalDictionaryTestCase extends QueryTest with BeforeAndAfterAll {
+class AllDictionaryTestCase extends QueryTest with BeforeAndAfterAll {
 
   var pwd: String = _
   var sampleRelation: CarbonRelation = _
   var complexRelation: CarbonRelation = _
-  var sampleLocalDictionaryFile: String = _
-  var complexLocalDictionaryFile: String = _
+  var sampleAllDictionaryFile: String = _
+  var complexAllDictionaryFile: String = _
 
   def buildCarbonLoadModel(relation: CarbonRelation,
     filePath: String,
     dimensionFilePath: String,
     header: String,
-    localDictFilePath: String): CarbonLoadModel = {
+    allDictFilePath: String): CarbonLoadModel = {
     val carbonLoadModel = new CarbonLoadModel
     carbonLoadModel.setTableName(relation.cubeMeta.carbonTableIdentifier.getDatabaseName)
     carbonLoadModel.setDatabaseName(relation.cubeMeta.carbonTableIdentifier.getTableName)
@@ -60,7 +60,7 @@ class LocalDictionaryTestCase extends QueryTest with BeforeAndAfterAll {
     carbonLoadModel.setCsvDelimiter(",")
     carbonLoadModel.setComplexDelimiterLevel1("\\$")
     carbonLoadModel.setComplexDelimiterLevel2("\\:")
-    carbonLoadModel.setLocalDictPath(localDictFilePath)
+    carbonLoadModel.setAllDictPath(allDictFilePath)
     carbonLoadModel
   }
 
@@ -75,8 +75,8 @@ class LocalDictionaryTestCase extends QueryTest with BeforeAndAfterAll {
 
   def buildTestData() = {
     pwd = new File(this.getClass.getResource("/").getPath + "/../../").getCanonicalPath
-    sampleLocalDictionaryFile = pwd + "/src/test/resources/localdictionary/sample/20160423/1400_1405/*.dictionary"
-    complexLocalDictionaryFile = pwd + "/src/test/resources/localdictionary/complex/20160423/1400_1405/*.dictionary"
+    sampleAllDictionaryFile = pwd + "/src/test/resources/alldictionary/sample/20160423/1400_1405/*.dictionary"
+    complexAllDictionaryFile = pwd + "/src/test/resources/alldictionary/complex/20160423/1400_1405/*.dictionary"
   }
 
   def buildTable() = {
@@ -109,9 +109,9 @@ class LocalDictionaryTestCase extends QueryTest with BeforeAndAfterAll {
     complexRelation = catalog.lookupRelation1(Option("default"), "complextypes", None)(CarbonHiveContext).asInstanceOf[CarbonRelation]
   }
 
-  test("Support generate global dictionary from local dictionary files") {
+  test("Support generate global dictionary from all dictionary files") {
     val header = "id,name,city,age"
-    val carbonLoadModel = buildCarbonLoadModel(sampleRelation, null, null, header, sampleLocalDictionaryFile)
+    val carbonLoadModel = buildCarbonLoadModel(sampleRelation, null, null, header, sampleAllDictionaryFile)
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
@@ -121,9 +121,9 @@ class LocalDictionaryTestCase extends QueryTest with BeforeAndAfterAll {
       checkDictionary(sampleRelation, "city", "shenzhen")
   }
 
-  test("Support generate global dictionary from local dictionary files for complex type") {
+  test("Support generate global dictionary from all dictionary files for complex type") {
     val header = "deviceInformationId,channelsId,ROMSize,purchasedate,mobile,MAC,locationinfo,proddate,gamePointId,contractNumber"
-    val carbonLoadModel = buildCarbonLoadModel(complexRelation, null, null, header, complexLocalDictionaryFile)
+    val carbonLoadModel = buildCarbonLoadModel(complexRelation, null, null, header, complexAllDictionaryFile)
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
       carbonLoadModel,

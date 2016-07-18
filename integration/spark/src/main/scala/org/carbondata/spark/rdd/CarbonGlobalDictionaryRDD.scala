@@ -161,13 +161,13 @@ case class DictionaryLoadModel(table: CarbonTableIdentifier,
 case class ColumnDistinctValues(values: Array[String], rowCount: Long) extends Serializable
 
 /**
- * A RDD to combine local dictionary distinct values.
+ * A RDD to combine all dictionary distinct values.
  *
  * @constructor create a RDD with RDD[(String, Iterable[String])]
  * @param prev the input RDD[(String, Iterable[String])]
  * @param model a model package load info
  */
-class CarbonLocalDictionaryCombineRDD(
+class CarbonAllDictionaryCombineRDD(
                                        prev: RDD[(String, Iterable[String])],
                                        model: DictionaryLoadModel)
   extends RDD[(Int, ColumnDistinctValues)](prev) with Logging {
@@ -181,7 +181,7 @@ class CarbonLocalDictionaryCombineRDD(
 
     val distinctValuesList = new ArrayBuffer[(Int, HashSet[String])]
     /*
-     * for local dictionary, all columns need to encoding and checking
+     * for all dictionary, all columns need to encoding and checking
      * isHighCardinalityColumn, so no need to calculate rowcount
      */
     val rowCount = 0L

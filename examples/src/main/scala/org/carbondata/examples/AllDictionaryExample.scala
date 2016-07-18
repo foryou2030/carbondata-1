@@ -18,18 +18,19 @@ package org.carbondata.examples
 
 import org.carbondata.core.constants.CarbonCommonConstants
 import org.carbondata.core.util.CarbonProperties
-import org.carbondata.examples.util.{InitForExamples, LocalDictionaryUtil}
+import org.carbondata.examples.util.{AllDictionaryUtil, InitForExamples}
 
-object LocalDictionaryExample {
+object AllDictionaryExample {
   def main(args: Array[String]) {
     val cc = InitForExamples.createCarbonContext("CarbonExample")
-    val testData = InitForExamples.currentPath + "/src/main/resources/data.csv"
+    val testData = InitForExamples.currentPath + "/src/main/resources/datawithoutheader.csv"
     val csvHeader = "id,date,country,name,phonetype,serialname,salary"
     val dictCol = "|date|country|name|phonetype|serialname|"
-    val localDictFile = InitForExamples.currentPath + "/src/main/resources/data.dictionary"
-    // extract local dictionary files from source data
-    LocalDictionaryUtil.extractDictionary(cc.sparkContext,
-      testData, localDictFile, csvHeader, dictCol)
+    val allDictFile = InitForExamples.currentPath +
+      "/src/main/resources/datawithoutheader.dictionary"
+    // extract all dictionary files from source data
+    AllDictionaryUtil.extractDictionary(cc.sparkContext,
+      testData, allDictFile, csvHeader, dictCol)
     // Specify timestamp format based on raw data
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_TIMESTAMP_FORMAT, "yyyy/mm/dd")
@@ -46,19 +47,16 @@ object LocalDictionaryExample {
     cc.sql(s"""
            LOAD DATA LOCAL INPATH '$testData' into table t3
            options('FILEHEADER'='id,date,country,name,phonetype,serialname,salary',
-           'LOCAL_DICTIONARY_PATH'='$localDictFile')
+           'ALL_DICTIONARY_PATH'='$allDictFile')
            """)
 
     cc.sql("""
-           SELECT country, count(salary) AS amount
-           FROM t3
-           WHERE country IN ('china','france')
-           GROUP BY country
+           SELECT * FROM t3
            """).show()
 
     cc.sql("DROP TABLE IF EXISTS t3")
 
     // clean local dictionary files
-    LocalDictionaryUtil.cleanDictionary(localDictFile)
+    AllDictionaryUtil.cleanDictionary(allDictFile)
   }
 }

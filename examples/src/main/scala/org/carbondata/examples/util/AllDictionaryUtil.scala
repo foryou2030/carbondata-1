@@ -26,7 +26,7 @@ import org.apache.spark.SparkContext
 
 import org.carbondata.core.datastorage.store.impl.FileFactory
 
-object LocalDictionaryUtil extends Logging{
+object AllDictionaryUtil extends Logging{
   def extractDictionary(sc: SparkContext,
                         srcData: String,
                         outputPath: String,

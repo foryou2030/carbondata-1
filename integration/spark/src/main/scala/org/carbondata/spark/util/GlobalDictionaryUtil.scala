@@ -53,7 +53,7 @@ import org.carbondata.processing.etl.DataLoadingException
 import org.carbondata.spark.load.CarbonLoaderUtil
 import org.carbondata.spark.load.CarbonLoadModel
 import org.carbondata.spark.partition.reader.CSVWriter
-import org.carbondata.spark.rdd.{ArrayParser, CarbonBlockDistinctValuesCombineRDD, CarbonColumnDictGenerateRDD, CarbonDataRDDFactory, CarbonGlobalDictionaryGenerateRDD, CarbonLocalDictionaryCombineRDD, ColumnPartitioner, DataFormat, DictionaryLoadModel, GenericParser, PrimitiveParser, StructParser}
+import org.carbondata.spark.rdd.{ArrayParser, CarbonAllDictionaryCombineRDD, CarbonBlockDistinctValuesCombineRDD, CarbonColumnDictGenerateRDD, CarbonDataRDDFactory, CarbonGlobalDictionaryGenerateRDD, ColumnPartitioner, DataFormat, DictionaryLoadModel, GenericParser, PrimitiveParser, StructParser}
 import org.carbondata.spark.CarbonSparkFactory
 
 /**
@@ -576,17 +576,17 @@ object GlobalDictionaryUtil extends Logging {
    * @param sqlContext
    * @param csvFileColumns
    * @param requireColumns
-   * @param localDictionaryPath
-   * @return localDictionaryRdd
+   * @param allDictionaryPath
+   * @return allDictionaryRdd
    */
-  private def readLocalDictionaryFiles(sqlContext: SQLContext,
+  private def readAllDictionaryFiles(sqlContext: SQLContext,
                                        csvFileColumns: Array[String],
                                        requireColumns: Array[String],
-                                       localDictionaryPath: String) = {
-    var localDictionaryRdd: RDD[(String, Iterable[String])] = null
+                                     allDictionaryPath: String) = {
+    var allDictionaryRdd: RDD[(String, Iterable[String])] = null
     try {
       // read local dictionary file, and spilt (columnIndex, columnValue)
-      val basicRdd = sqlContext.sparkContext.textFile(localDictionaryPath)
+      val basicRdd = sqlContext.sparkContext.textFile(allDictionaryPath)
         .map(x => {
         val tokens = x.split("" + CSVWriter.DEFAULT_SEPARATOR)
         var index: Int = 0
@@ -602,7 +602,7 @@ object GlobalDictionaryUtil extends Logging {
       })
       // group by column index, and filter required columns
       val requireColumnsList = requireColumns.toList
-      localDictionaryRdd = basicRdd
+      allDictionaryRdd = basicRdd
         .groupByKey()
         .map(x => (csvFileColumns(x._1), x._2))
         .filter(x => requireColumnsList.contains(x._1))
@@ -612,18 +612,18 @@ object GlobalDictionaryUtil extends Logging {
         throw ex
     }
 
-    localDictionaryRdd
+    allDictionaryRdd
   }
 
   /**
    * validate local dictionary files
    *
-   * @param localDictionaryPath
+   * @param allDictionaryPath
    * @return (isNonempty, isDirectory)
    */
-  private def validateLocalDictionary(localDictionaryPath: String): Boolean = {
-    val fileType = FileFactory.getFileType(localDictionaryPath)
-    val filePath = FileFactory.getCarbonFile(localDictionaryPath, fileType)
+  private def validateAllDictionaryPath(allDictionaryPath: String): Boolean = {
+    val fileType = FileFactory.getFileType(allDictionaryPath)
+    val filePath = FileFactory.getCarbonFile(allDictionaryPath, fileType)
     // filepath regex, look like "/path/*.dictionary"
     if (filePath.getName.startsWith("*")) {
       val dictExt = filePath.getName.substring(1)
@@ -632,7 +632,7 @@ object GlobalDictionaryUtil extends Logging {
         file.getName.endsWith(dictExt) && file.getSize > 0)) {
         true
       } else {
-        logInfo("No local dictionary found or empty local dictionary files! " +
+        logInfo("No dictionary files found or empty dictionary files! " +
           "Won't generate new dictionary.")
         false
       }
@@ -640,23 +640,11 @@ object GlobalDictionaryUtil extends Logging {
       if (filePath.exists() && filePath.getSize > 0) {
         true
       } else {
-        logInfo("No local dictionary found or empty local dictionary files! " +
+        logInfo("No dictionary files found or empty dictionary files! " +
           "Won't generate new dictionary.")
         false
       }
     }
-//    if (filePath.isDirectory) {
-//      val dictExt = ".dictionary"
-//      val listFiles = filePath.listFiles()
-//      if (listFiles.exists(file =>
-//        file.getName.endsWith(dictExt) && file.getSize > 0)) {
-//        (true, true)
-//      } else {
-//        logInfo("No local dictionary found or empty local dictionary files! " +
-//          "Won't generate new dictionary.")
-//        (false, true)
-//      }
-//    }
   }
 
   /**
@@ -681,9 +669,9 @@ object GlobalDictionaryUtil extends Logging {
       // generate global dict from pre defined column dict file
       carbonLoadModel.initPredefDictMap()
 
-      val localDictionaryPath = carbonLoadModel.getLocalDictPath
-      if(StringUtils.isEmpty(localDictionaryPath)) {
-        logInfo("Generate global dictionary from local source data files!")
+      val allDictionaryPath = carbonLoadModel.getAllDictPath
+      if(StringUtils.isEmpty(allDictionaryPath)) {
+        logInfo("Generate global dictionary from source data files!")
         // load data by using dataSource com.databricks.spark.csv
         var df = loadDataFrame(sqlContext, carbonLoadModel)
         val headers = if (StringUtils.isEmpty(carbonLoadModel.getCsvHeader)) {
@@ -741,8 +729,8 @@ object GlobalDictionaryUtil extends Logging {
           }
         }
       } else {
-        logInfo("Generate global dictionary from local dictionary files!")
-        val isNonempty = validateLocalDictionary(localDictionaryPath)
+        logInfo("Generate global dictionary from all dictionary files!")
+        val isNonempty = validateAllDictionaryPath(allDictionaryPath)
         if(isNonempty) {
           // fill the map[columnIndex -> columnName]
           var fileHeaders : Array[String] = null
@@ -754,7 +742,7 @@ object GlobalDictionaryUtil extends Logging {
             }
             fileHeaders = fileHeadersArr.toArray
           } else {
-            logError("Not found file header !")
+            logError("Not found file header! Please set fileheader")
             throw new IOException("Failed to get file header")
           }
           // prune columns according to the CSV file header, dimension columns
@@ -764,10 +752,10 @@ object GlobalDictionaryUtil extends Logging {
             val model = createDictionaryLoadModel(carbonLoadModel, table, requireDimension,
               hdfsLocation, dictfolderPath, false)
             // read local dictionary file, and group by key
-            val localDictionaryRdd = readLocalDictionaryFiles(sqlContext, fileHeaders,
-              requireColumnNames, localDictionaryPath)
+            val allDictionaryRdd = readAllDictionaryFiles(sqlContext, fileHeaders,
+              requireColumnNames, allDictionaryPath)
             // read exist dictionary and combine
-            val inputRDD = new CarbonLocalDictionaryCombineRDD(localDictionaryRdd, model)
+            val inputRDD = new CarbonAllDictionaryCombineRDD(allDictionaryRdd, model)
               .partitionBy(new ColumnPartitioner(model.primDimensions.length))
             // generate global dictionary files
             val statusList = new CarbonGlobalDictionaryGenerateRDD(inputRDD, model).collect()
