@@ -213,6 +213,7 @@ class CarbonAllDictionaryCombineRDD(
     } catch {
       case ex: Exception =>
         LOGGER.error(ex)
+        throw ex
     }
 
     distinctValuesList.map { iter =>
