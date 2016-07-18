@@ -33,11 +33,19 @@ object LocalDictionaryUtil extends Logging{
                         fileHeader: String,
                         dictCol: String): Unit = {
     val fileHeaderArr = fileHeader.split(",")
+    val isDictCol = new Array[Boolean](fileHeaderArr.length)
+    for (i <- 0 until fileHeaderArr.length) {
+      if (dictCol.contains("|" + fileHeaderArr(i) + "|")) {
+        isDictCol(i) = true
+      } else {
+        isDictCol(i) = false
+      }
+    }
     val dictionaryRdd = sc.textFile(srcData).flatMap(x => {
       val tokens = x.split(",")
       val result = new ArrayBuffer[(Int, String)]()
-      for (i <- 0 until fileHeaderArr.length) {
-        if (dictCol.contains("|" + fileHeaderArr(i) + "|")) {
+      for (i <- 0 until isDictCol.length) {
+        if (isDictCol(i)) {
           try {
             result += ((i, tokens(i)))
           } catch {

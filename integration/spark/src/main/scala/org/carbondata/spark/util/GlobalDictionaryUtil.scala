@@ -601,10 +601,11 @@ object GlobalDictionaryUtil extends Logging {
         (index, value)
       })
       // group by column index, and filter required columns
+      val requireColumnsList = requireColumns.toList
       localDictionaryRdd = basicRdd
         .groupByKey()
         .map(x => (csvFileColumns(x._1), x._2))
-        .filter(x => requireColumns.toList.contains(x._1))
+        .filter(x => requireColumnsList.contains(x._1))
     } catch {
       case ex: Exception =>
         logError("read local dictionary files failed")
