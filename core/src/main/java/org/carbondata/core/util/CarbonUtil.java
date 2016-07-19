@@ -23,6 +23,7 @@ package org.carbondata.core.util;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.security.PrivilegedExceptionAction;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -1828,6 +1829,33 @@ public final class CarbonUtil {
     } catch (IOException e) {
       throw new CarbonUtilException("Problem while reading the file metadata", e);
     }
+  }
+
+  /**
+   * @param csvFilePath
+   * @return
+   */
+  public static String readCSVFile(String csvFilePath) {
+
+    DataInputStream fileReader = null;
+    BufferedReader bufferedReader = null;
+    String readLine = null;
+
+    try {
+      fileReader =
+          FileFactory.getDataInputStream(csvFilePath, FileFactory.getFileType(csvFilePath));
+      bufferedReader =
+          new BufferedReader(new InputStreamReader(fileReader, Charset.defaultCharset()));
+      readLine = bufferedReader.readLine();
+
+    } catch (FileNotFoundException e) {
+      LOGGER.error(e, "CSV Input File not found  " + e.getMessage());
+    } catch (IOException e) {
+      LOGGER.error(e, "Not able to read CSV input File  " + e.getMessage());
+    } finally {
+      CarbonUtil.closeStreams(fileReader, bufferedReader);
+    }
+    return readLine;
   }
 
 }

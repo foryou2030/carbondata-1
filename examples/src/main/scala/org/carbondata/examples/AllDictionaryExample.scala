@@ -23,11 +23,10 @@ import org.carbondata.examples.util.{AllDictionaryUtil, InitForExamples}
 object AllDictionaryExample {
   def main(args: Array[String]) {
     val cc = InitForExamples.createCarbonContext("CarbonExample")
-    val testData = InitForExamples.currentPath + "/src/main/resources/datawithoutheader.csv"
-    val csvHeader = "id,date,country,name,phonetype,serialname,salary"
+    val testData = InitForExamples.currentPath + "/src/main/resources/data.csv"
+    val csvHeader = "ID,date,country,name,phonetype,serialname,salary"
     val dictCol = "|date|country|name|phonetype|serialname|"
-    val allDictFile = InitForExamples.currentPath +
-      "/src/main/resources/datawithoutheader.dictionary"
+    val allDictFile = InitForExamples.currentPath + "/src/main/resources/data.dictionary"
     // extract all dictionary files from source data
     AllDictionaryUtil.extractDictionary(cc.sparkContext,
       testData, allDictFile, csvHeader, dictCol)
@@ -46,12 +45,14 @@ object AllDictionaryExample {
 
     cc.sql(s"""
            LOAD DATA LOCAL INPATH '$testData' into table t3
-           options('FILEHEADER'='id,date,country,name,phonetype,serialname,salary',
-           'ALL_DICTIONARY_PATH'='$allDictFile')
+           options('ALL_DICTIONARY_PATH'='$allDictFile')
            """)
 
     cc.sql("""
-           SELECT * FROM t3
+           SELECT country, count(salary) AS amount
+           FROM t3
+           WHERE country IN ('china','france')
+           GROUP BY country
            """).show()
 
     cc.sql("DROP TABLE IF EXISTS t3")

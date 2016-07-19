@@ -167,9 +167,8 @@ case class ColumnDistinctValues(values: Array[String], rowCount: Long) extends S
  * @param prev the input RDD[(String, Iterable[String])]
  * @param model a model package load info
  */
-class CarbonAllDictionaryCombineRDD(
-                                       prev: RDD[(String, Iterable[String])],
-                                       model: DictionaryLoadModel)
+class CarbonAllDictionaryCombineRDD(prev: RDD[(String, Iterable[String])],
+                                     model: DictionaryLoadModel)
   extends RDD[(Int, ColumnDistinctValues)](prev) with Logging {
 
   override def getPartitions: Array[Partition] =

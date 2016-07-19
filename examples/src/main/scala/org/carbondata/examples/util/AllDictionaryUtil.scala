@@ -35,7 +35,7 @@ object AllDictionaryUtil extends Logging{
     val fileHeaderArr = fileHeader.split(",")
     val isDictCol = new Array[Boolean](fileHeaderArr.length)
     for (i <- 0 until fileHeaderArr.length) {
-      if (dictCol.contains("|" + fileHeaderArr(i) + "|")) {
+      if (dictCol.contains("|" + fileHeaderArr(i).toLowerCase() + "|")) {
         isDictCol(i) = true
       } else {
         isDictCol(i) = false
@@ -43,11 +43,11 @@ object AllDictionaryUtil extends Logging{
     }
     val dictionaryRdd = sc.textFile(srcData).flatMap(x => {
       val tokens = x.split(",")
-      val result = new ArrayBuffer[(Int, String)]()
+      val result = new ArrayBuffer[(String, String)]()
       for (i <- 0 until isDictCol.length) {
         if (isDictCol(i)) {
           try {
-            result += ((i, tokens(i)))
+            result += ((fileHeaderArr(i), tokens(i)))
           } catch {
             case ex: ArrayIndexOutOfBoundsException =>
               logError("Read a bad record: " + x)
@@ -56,7 +56,7 @@ object AllDictionaryUtil extends Logging{
       }
       result
     }).groupByKey().flatMap(x => {
-      val distinctValues = new HashSet[(Int, String)]()
+      val distinctValues = new HashSet[(String, String)]()
       for (value <- x._2) {
         distinctValues.add(x._1, value)
       }
