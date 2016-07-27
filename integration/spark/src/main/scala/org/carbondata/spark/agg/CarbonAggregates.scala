@@ -153,7 +153,11 @@ case class SumCarbon(child: Expression, castedDataType: DataType = null)
     val partialSum = Alias(SumCarbon(child), "PartialSum")()
     SplitEvaluation(
       SumCarbonFinal(partialSum.toAttribute,
-        if (castedDataType != null) castedDataType else child.dataType),
+        if (castedDataType != null) {
+          castedDataType
+        } else {
+          CarbonScalaUtil.updatedDataTypeForSum(child.dataType)
+        }),
       partialSum :: Nil)
   }
 

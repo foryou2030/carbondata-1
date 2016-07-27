@@ -117,6 +117,18 @@ object CarbonScalaUtil {
     newDataType
   }
 
+  def updatedDataTypeForSum(
+      currentDataType: org.apache.spark.sql.types.DataType): org.apache.spark.sql.types.DataType = {
+    var newDataType: org.apache.spark.sql.types.DataType = currentDataType
+    if (currentDataType.isInstanceOf[DecimalType]) {
+      val precision = currentDataType.asInstanceOf[DecimalType].precision
+      val scale = currentDataType.asInstanceOf[DecimalType].scale
+      if (precision > 27) {
+        newDataType = DecimalType(DecimalType.MAX_PRECISION, scale)
+      }
+    }
+    newDataType
+  }
 
   case class TransformHolder(rdd: Any, mataData: CarbonMetaData)
 
