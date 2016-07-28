@@ -269,7 +269,7 @@ case class SumDistinctCarbon(child: Expression, castedDataType: DataType = null)
         if (castedDataType != null) {
           castedDataType
         } else {
-          child.dataType
+          CarbonScalaUtil.updatedDataTypeForSum(child.dataType)
         }),
       partialSum :: Nil)
   }
@@ -493,10 +493,7 @@ case class SumFunctionCarbon(expr: Expression, base: AggregateExpression1, final
       } else {
         sum match {
           case s: SumBigDecimalAggregator =>
-            val decimalValue: BigDecimal = sum.getBigDecimalValue
-            val updatedDataType = CarbonScalaUtil
-              .getDecimalDataTypeWithUpdatedPrecision(decimalValue, base.dataType)
-            Cast(Literal(decimalValue), updatedDataType).eval(input)
+            Cast(Literal(sum.getBigDecimalValue), base.dataType).eval(input)
           case s: SumLongAggregator =>
             Cast(Literal(sum.getLongValue), base.dataType).eval(input)
           case _ =>
@@ -693,13 +690,7 @@ case class SumDisctinctFunctionCarbon(expr: Expression, base: AggregateExpressio
         null
       }
       else {
-        val updatedDataType = base.dataType match {
-          case decimal: DecimalType =>
-            CarbonScalaUtil
-              .getDecimalDataTypeWithUpdatedPrecision(distinct.getBigDecimalValue, base.dataType)
-          case _ => base.dataType
-        }
-        Cast(Literal(distinct.getValueObject), updatedDataType).eval(null)
+        Cast(Literal(distinct.getValueObject), base.dataType).eval(null)
       }
     }
     else {
