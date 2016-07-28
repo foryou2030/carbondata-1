@@ -116,7 +116,7 @@ case class AverageCarbon(child: Expression, castedDataType: DataType = null)
       AverageCarbonFinal(partialSum.toAttribute,
         child.dataType match {
           case IntegerType | StringType | LongType | TimestampType => DoubleType
-          case _ => child.dataType
+          case _ => CarbonScalaUtil.updateDataType(child.dataType)
         }),
       partialSum :: Nil)
   }
@@ -156,7 +156,7 @@ case class SumCarbon(child: Expression, castedDataType: DataType = null)
         if (castedDataType != null) {
           castedDataType
         } else {
-          CarbonScalaUtil.updatedDataTypeForSum(child.dataType)
+          CarbonScalaUtil.updateDataType(child.dataType)
         }),
       partialSum :: Nil)
   }
@@ -269,7 +269,7 @@ case class SumDistinctCarbon(child: Expression, castedDataType: DataType = null)
         if (castedDataType != null) {
           castedDataType
         } else {
-          CarbonScalaUtil.updatedDataTypeForSum(child.dataType)
+          CarbonScalaUtil.updateDataType(child.dataType)
         }),
       partialSum :: Nil)
   }
@@ -373,10 +373,7 @@ case class AverageFunctionCarbon(expr: Expression, base: AggregateExpression1, f
       } else {
         avg match {
           case avg: AvgBigDecimalAggregator =>
-            val decimalValue: BigDecimal = avg.getBigDecimalValue
-            val updatedDataType = CarbonScalaUtil
-              .getDecimalDataTypeWithUpdatedPrecision(decimalValue, base.dataType)
-            Cast(Literal(decimalValue), updatedDataType).eval(null)
+            Cast(Literal(avg.getBigDecimalValue), base.dataType).eval(null)
           case avg: AvgLongAggregator =>
             Cast(Literal(avg.getDoubleValue), base.dataType).eval(null)
           case avg: AvgTimestampAggregator =>

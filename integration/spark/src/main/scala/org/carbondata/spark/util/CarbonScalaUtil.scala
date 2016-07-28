@@ -105,19 +105,7 @@ object CarbonScalaUtil {
     }
   }
 
-  def getDecimalDataTypeWithUpdatedPrecision(decimalValue: java.math.BigDecimal,
-      currentDataType: org.apache.spark.sql.types.DataType): org.apache.spark.sql.types.DataType = {
-    var newDataType: org.apache.spark.sql.types.DataType = currentDataType
-    if (null != decimalValue) {
-      val precision = decimalValue.precision
-      if (precision <= DecimalType.MAX_PRECISION) {
-        newDataType = DecimalType(precision, decimalValue.scale())
-      }
-    }
-    newDataType
-  }
-
-  def updatedDataTypeForSum(
+  def updateDataType(
       currentDataType: org.apache.spark.sql.types.DataType): org.apache.spark.sql.types.DataType = {
     currentDataType match {
       case decimal: DecimalType =>
