@@ -42,6 +42,7 @@ import org.carbondata.core.carbon.datastore.block.{Distributable, TableBlockInfo
 import org.carbondata.core.carbon.metadata.CarbonMetadata
 import org.carbondata.core.carbon.metadata.schema.table.CarbonTable
 import org.carbondata.core.constants.CarbonCommonConstants
+import org.carbondata.core.datastorage.store.impl.FileFactory
 import org.carbondata.core.load.{BlockDetails, LoadMetadataDetails}
 import org.carbondata.core.locks.{CarbonLockFactory, ICarbonLock, LockUsage}
 import org.carbondata.core.util.{CarbonProperties, CarbonUtil}
@@ -980,23 +981,23 @@ object CarbonDataRDDFactory extends Logging {
   def getKettleHome(sqlContext: SQLContext): String = {
     var kettleHomePath = sqlContext.getConf("carbon.kettle.home", null)
     val sparkMaster = sqlContext.sparkContext.getConf.get("spark.master").toLowerCase()
-    if (sparkMaster.startsWith("local")) {
-      // when running in local model, using "carbon.kettle.home"
-      if (null == kettleHomePath) {
-        kettleHomePath = CarbonProperties.getInstance.getProperty("carbon.kettle.home")
-      }
-      if (kettleHomePath == null) {
-        sys.error(s"carbon.kettle.home is not set")
+    if (null == kettleHomePath) {
+      kettleHomePath = CarbonProperties.getInstance.getProperty("carbon.kettle.home")
+    }
+    if (kettleHomePath != null) {
+      val kettleHomeFileType = FileFactory.getFileType(kettleHomePath)
+      val kettleHomeFile = FileFactory.getCarbonFile(kettleHomePath, kettleHomeFileType)
+      if (!kettleHomeFile.exists() && sparkMaster.startsWith("local")) {
+        var jarFilePath = this.getClass.getResource("").getPath
+        val endIndex = jarFilePath.indexOf(".jar") + ".jar".length()
+        jarFilePath = jarFilePath.substring(0, endIndex)
+        val jarFileType = FileFactory.getFileType(jarFilePath)
+        val jarFile = FileFactory.getCarbonFile(jarFilePath, jarFileType)
+        val carbonLibPath = jarFile.getParentFile.getPath
+        kettleHomePath = carbonLibPath + "/carbonplugins"
       }
     } else {
-      // when running in local model, using "carbon.kettle.home"
-      kettleHomePath = sqlContext.getConf("carbon.cluster.kettle.home", null)
-      if (null == kettleHomePath) {
-        kettleHomePath = CarbonProperties.getInstance.getProperty("carbon.cluster.kettle.home")
-      }
-      if (kettleHomePath == null) {
-        sys.error(s"carbon.cluster.kettle.home is not set")
-      }
+      sys.error(s"carbon.kettle.home is not set")
     }
     kettleHomePath
   }
