@@ -255,13 +255,7 @@ object CarbonDataRDDFactory extends Logging {
         )
       storeLocation = storeLocation + "/carbonstore/" + System.currentTimeMillis()
       val columinar = sqlContext.getConf("carbon.is.columnar.storage", "true").toBoolean
-      var kettleHomePath = sqlContext.getConf("carbon.kettle.home", null)
-      if (null == kettleHomePath) {
-        kettleHomePath = CarbonProperties.getInstance.getProperty("carbon.kettle.home")
-      }
-      if (kettleHomePath == null) {
-        sys.error(s"carbon.kettle.home is not set")
-      }
+      val kettleHomePath = CarbonDataRDDFactory.getKettleHome(sqlContext)
       CarbonDataRDDFactory.loadCarbonData(
         sqlContext,
         carbonLoadModel,
@@ -981,6 +975,30 @@ object CarbonDataRDDFactory extends Logging {
         logError("Unable to unlock the metadata lock")
       }
     }
+  }
+
+  def getKettleHome(sqlContext: SQLContext): String = {
+    var kettleHomePath = sqlContext.getConf("carbon.kettle.home", null)
+    val sparkMaster = sqlContext.sparkContext.getConf.get("spark.master").toLowerCase()
+    if (sparkMaster.startsWith("local")) {
+      // when running in local model, using "carbon.kettle.home"
+      if (null == kettleHomePath) {
+        kettleHomePath = CarbonProperties.getInstance.getProperty("carbon.kettle.home")
+      }
+      if (kettleHomePath == null) {
+        sys.error(s"carbon.kettle.home is not set")
+      }
+    } else {
+      // when running in local model, using "carbon.kettle.home"
+      kettleHomePath = sqlContext.getConf("carbon.cluster.kettle.home", null)
+      if (null == kettleHomePath) {
+        kettleHomePath = CarbonProperties.getInstance.getProperty("carbon.cluster.kettle.home")
+      }
+      if (kettleHomePath == null) {
+        sys.error(s"carbon.cluster.kettle.home is not set")
+      }
+    }
+    kettleHomePath
   }
 
 }
