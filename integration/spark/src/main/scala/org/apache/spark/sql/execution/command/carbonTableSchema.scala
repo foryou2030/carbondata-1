@@ -1230,7 +1230,7 @@ private[sql] case class AlterTableCompaction(alterTableModel: AlterTableModel) e
     carbonLoadModel.setStorePath(relation.cubeMeta.storePath)
 
     val partitioner = relation.cubeMeta.partitioner
-    val kettleHomePath = CarbonDataRDDFactory.getKettleHome(sqlContext)
+    val kettleHomePath = CarbonScalaUtil.getKettleHome(sqlContext)
 
     var storeLocation = CarbonProperties.getInstance
       .getProperty(CarbonCommonConstants.STORE_LOCATION_TEMP_PATH,
@@ -1518,7 +1518,7 @@ private[sql] case class LoadCube(
       storeLocation = storeLocation + "/carbonstore/" + System.nanoTime()
 
       val columinar = sqlContext.getConf("carbon.is.columnar.storage", "true").toBoolean
-      val kettleHomePath = CarbonDataRDDFactory.getKettleHome(sqlContext)
+      val kettleHomePath = CarbonScalaUtil.getKettleHome(sqlContext)
 
       val delimiter = partionValues.getOrElse("delimiter", ",")
       val quoteChar = partionValues.getOrElse("quotechar", "\"")
@@ -1709,7 +1709,7 @@ private[sql] case class LoadAggregationTable(
         System.getProperty("java.io.tmpdir"))
     storeLocation = storeLocation + "/carbonstore/" + System.currentTimeMillis()
     val columinar = sqlContext.getConf("carbon.is.columnar.storage", "true").toBoolean
-    val kettleHomePath = CarbonDataRDDFactory.getKettleHome(sqlContext)
+    val kettleHomePath = CarbonScalaUtil.getKettleHome(sqlContext)
 
     CarbonDataRDDFactory.loadCarbonData(
       sqlContext,

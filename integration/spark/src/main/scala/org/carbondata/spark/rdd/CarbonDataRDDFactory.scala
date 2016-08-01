@@ -18,7 +18,6 @@
 
 package org.carbondata.spark.rdd
 
-import java.io.File
 import java.util
 import java.util.concurrent.{Executors, ExecutorService, Future}
 
@@ -43,7 +42,6 @@ import org.carbondata.core.carbon.datastore.block.{Distributable, TableBlockInfo
 import org.carbondata.core.carbon.metadata.CarbonMetadata
 import org.carbondata.core.carbon.metadata.schema.table.CarbonTable
 import org.carbondata.core.constants.CarbonCommonConstants
-import org.carbondata.core.datastorage.store.impl.FileFactory
 import org.carbondata.core.load.{BlockDetails, LoadMetadataDetails}
 import org.carbondata.core.locks.{CarbonLockFactory, ICarbonLock, LockUsage}
 import org.carbondata.core.util.{CarbonProperties, CarbonUtil}
@@ -54,7 +52,7 @@ import org.carbondata.spark._
 import org.carbondata.spark.load._
 import org.carbondata.spark.merger.CarbonDataMergerUtil
 import org.carbondata.spark.splits.TableSplit
-import org.carbondata.spark.util.{CarbonQueryUtil, LoadMetadataUtil}
+import org.carbondata.spark.util.{CarbonQueryUtil, CarbonScalaUtil, LoadMetadataUtil}
 
 
 /**
@@ -257,7 +255,7 @@ object CarbonDataRDDFactory extends Logging {
         )
       storeLocation = storeLocation + "/carbonstore/" + System.currentTimeMillis()
       val columinar = sqlContext.getConf("carbon.is.columnar.storage", "true").toBoolean
-      val kettleHomePath = CarbonDataRDDFactory.getKettleHome(sqlContext)
+      val kettleHomePath = CarbonScalaUtil.getKettleHome(sqlContext)
       CarbonDataRDDFactory.loadCarbonData(
         sqlContext,
         carbonLoadModel,
@@ -977,38 +975,6 @@ object CarbonDataRDDFactory extends Logging {
         logError("Unable to unlock the metadata lock")
       }
     }
-  }
-
-  def getKettleHome(sqlContext: SQLContext): String = {
-    var kettleHomePath = sqlContext.getConf("carbon.kettle.home", null)
-    if (null == kettleHomePath) {
-      kettleHomePath = CarbonProperties.getInstance.getProperty("carbon.kettle.home")
-    }
-    if (kettleHomePath != null) {
-      val sparkMaster = sqlContext.sparkContext.getConf.get("spark.master").toLowerCase()
-      if (sparkMaster.startsWith("local")) {
-        val kettleHomeFileType = FileFactory.getFileType(kettleHomePath)
-        val kettleHomeFile = FileFactory.getCarbonFile(kettleHomePath, kettleHomeFileType)
-        if (!kettleHomeFile.exists()) {
-          var jarFilePath = this.getClass.getResource("").getPath
-          val endIndex = jarFilePath.indexOf(".jar!") + 4
-          jarFilePath = jarFilePath.substring(0, endIndex)
-          val jarFileType = FileFactory.getFileType(jarFilePath)
-          val jarFile = FileFactory.getCarbonFile(jarFilePath, jarFileType)
-          val carbonLibPath = jarFile.getParentFile.getPath
-          kettleHomePath = carbonLibPath + File.separator + "carbonplugins"
-          logInfo(s"'carbon.kettle.home' path is not exists, reset it as $kettleHomePath")
-          val newKettleHomeFileType = FileFactory.getFileType(kettleHomePath)
-          val newKettleHomeFile = FileFactory.getCarbonFile(kettleHomePath, newKettleHomeFileType)
-          if (!newKettleHomeFile.exists()) {
-            sys.error(s"Failed to reset 'carbon.kettle.home'!")
-          }
-        }
-      }
-    } else {
-      sys.error(s"carbon.kettle.home is not set")
-    }
-    kettleHomePath
   }
 
 }
