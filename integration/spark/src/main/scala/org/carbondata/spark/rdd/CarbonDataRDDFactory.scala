@@ -18,6 +18,7 @@
 
 package org.carbondata.spark.rdd
 
+import java.io.File
 import java.util
 import java.util.concurrent.{Executors, ExecutorService, Future}
 
@@ -997,6 +998,11 @@ object CarbonDataRDDFactory extends Logging {
           val carbonLibPath = jarFile.getParentFile.getPath
           kettleHomePath = carbonLibPath + File.separator + "carbonplugins"
           logInfo(s"'carbon.kettle.home' path is not exists, reset it as $kettleHomePath")
+          val newKettleHomeFileType = FileFactory.getFileType(kettleHomePath)
+          val newKettleHomeFile = FileFactory.getCarbonFile(kettleHomePath, newKettleHomeFileType)
+          if (!newKettleHomeFile.exists()) {
+            sys.error(s"Failed to reset 'carbon.kettle.home'!")
+          }
         }
       }
     } else {
