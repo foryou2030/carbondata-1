@@ -980,21 +980,24 @@ object CarbonDataRDDFactory extends Logging {
 
   def getKettleHome(sqlContext: SQLContext): String = {
     var kettleHomePath = sqlContext.getConf("carbon.kettle.home", null)
-    val sparkMaster = sqlContext.sparkContext.getConf.get("spark.master").toLowerCase()
     if (null == kettleHomePath) {
       kettleHomePath = CarbonProperties.getInstance.getProperty("carbon.kettle.home")
     }
     if (kettleHomePath != null) {
-      val kettleHomeFileType = FileFactory.getFileType(kettleHomePath)
-      val kettleHomeFile = FileFactory.getCarbonFile(kettleHomePath, kettleHomeFileType)
-      if (!kettleHomeFile.exists() && sparkMaster.startsWith("local")) {
-        var jarFilePath = this.getClass.getResource("").getPath
-        val endIndex = jarFilePath.indexOf(".jar") + ".jar".length()
-        jarFilePath = jarFilePath.substring(0, endIndex)
-        val jarFileType = FileFactory.getFileType(jarFilePath)
-        val jarFile = FileFactory.getCarbonFile(jarFilePath, jarFileType)
-        val carbonLibPath = jarFile.getParentFile.getPath
-        kettleHomePath = carbonLibPath + "/carbonplugins"
+      val sparkMaster = sqlContext.sparkContext.getConf.get("spark.master").toLowerCase()
+      if (sparkMaster.startsWith("local")) {
+        val kettleHomeFileType = FileFactory.getFileType(kettleHomePath)
+        val kettleHomeFile = FileFactory.getCarbonFile(kettleHomePath, kettleHomeFileType)
+        if (!kettleHomeFile.exists()) {
+          var jarFilePath = this.getClass.getResource("").getPath
+          val endIndex = jarFilePath.indexOf(".jar!") + 4
+          jarFilePath = jarFilePath.substring(0, endIndex)
+          val jarFileType = FileFactory.getFileType(jarFilePath)
+          val jarFile = FileFactory.getCarbonFile(jarFilePath, jarFileType)
+          val carbonLibPath = jarFile.getParentFile.getPath
+          kettleHomePath = carbonLibPath + File.separator + "carbonplugins"
+          logInfo(s"'carbon.kettle.home' path is not exists, reset it as $kettleHomePath")
+        }
       }
     } else {
       sys.error(s"carbon.kettle.home is not set")
