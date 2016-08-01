@@ -19,10 +19,6 @@ package org.carbondata.spark.util
 
 import java.io.File
 
-import org.carbondata.core.datastorage.store.impl.FileFactory
-import org.carbondata.core.util.CarbonProperties
-import org.carbondata.spark.rdd.CarbonDataRDDFactory._
-
 import scala.collection.JavaConverters._
 
 import org.apache.spark.Logging
@@ -35,6 +31,8 @@ import org.carbondata.core.carbon.metadata.datatype.DataType
 import org.carbondata.core.carbon.metadata.encoder.Encoding
 import org.carbondata.core.carbon.metadata.schema.table.CarbonTable
 import org.carbondata.core.constants.CarbonCommonConstants
+import org.carbondata.core.datastorage.store.impl.FileFactory
+import org.carbondata.core.util.CarbonProperties
 import org.carbondata.query.expression.{DataType => CarbonDataType}
 
 object CarbonScalaUtil extends Logging {
