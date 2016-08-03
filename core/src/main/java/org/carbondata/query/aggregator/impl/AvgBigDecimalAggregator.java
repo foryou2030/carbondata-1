@@ -115,7 +115,8 @@ public class AvgBigDecimalAggregator extends AbstractMeasureAggregatorBasic {
    * @return average aggregate value
    */
   @Override public BigDecimal getBigDecimalValue() {
-    return aggVal.divide(new BigDecimal(count), 6);
+    int updatedScale = aggVal.scale() + 4;
+    return aggVal.divide(new BigDecimal(count), updatedScale, BigDecimal.ROUND_HALF_EVEN);
   }
 
   /**
@@ -139,7 +140,8 @@ public class AvgBigDecimalAggregator extends AbstractMeasureAggregatorBasic {
    * @return average value as an object
    */
   @Override public Object getValueObject() {
-    return aggVal.divide(new BigDecimal(count));
+    int updatedScale = aggVal.scale() + 4;
+    return aggVal.divide(new BigDecimal(count), updatedScale, BigDecimal.ROUND_HALF_EVEN);
   }
 
   /**
