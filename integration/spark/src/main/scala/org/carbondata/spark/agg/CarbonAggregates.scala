@@ -118,7 +118,7 @@ case class AverageCarbon(child: Expression, castedDataType: DataType = null)
           case decimal: DecimalType =>
             val precision = decimal.asInstanceOf[DecimalType].precision
             val scale = decimal.asInstanceOf[DecimalType].scale
-            // update precision,keep sync with hive
+            // increase precision and scale to avoid any precision lost in the data
             val updatedPrecision = min(precision + 4, DecimalType.MAX_PRECISION)
             val updatedScale = min(scale + 4, DecimalType.MAX_SCALE)
             DecimalType(updatedPrecision, updatedScale)
