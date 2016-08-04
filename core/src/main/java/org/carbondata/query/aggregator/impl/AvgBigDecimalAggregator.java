@@ -27,12 +27,12 @@ import java.nio.ByteBuffer;
 
 import static java.lang.Math.min;
 
-import org.apache.spark.sql.types.DecimalType;
-
 import org.carbondata.core.carbon.datastore.chunk.MeasureColumnDataChunk;
 import org.carbondata.core.constants.CarbonCommonConstants;
 import org.carbondata.core.util.DataTypeUtil;
 import org.carbondata.query.aggregator.MeasureAggregator;
+
+import org.apache.spark.sql.types.DecimalType;
 
 public class AvgBigDecimalAggregator extends AbstractMeasureAggregatorBasic {
 
